@@ -7,8 +7,13 @@ export class OllamaFilter implements ContentFilter {
   private ollama: Ollama;
 
   constructor(private config: Config) {
+    // baseUrlが設定されていない場合はデフォルト値を使用
+    const baseUrl = config.llm.baseUrl !== undefined 
+      ? config.llm.baseUrl 
+      : 'http://localhost:11434';
+      
     this.ollama = new Ollama({
-      baseUrl: config.llm.baseUrl || 'http://localhost:11434',
+      baseUrl,
     });
   }
 
