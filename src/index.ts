@@ -1,6 +1,6 @@
 import { loadConfig } from './config';
 import { ProxyServer } from './proxy/server';
-import { OllamaFilter } from './llm/ollama';
+import { createLLMFilter } from './llm';
 
 async function main() {
   const config = loadConfig();
@@ -8,8 +8,12 @@ async function main() {
 
   // LLMフィルターの追加
   if (config.llm.enabled) {
-    const ollamaFilter = new OllamaFilter(config);
-    server.addFilter(ollamaFilter);
+    try {
+      const llmFilter = createLLMFilter(config);
+      server.addFilter(llmFilter);
+    } catch (error) {
+      console.error('LLMフィルターの初期化中にエラーが発生しました:', error);
+    }
   }
 
   server.start();
