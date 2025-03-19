@@ -45,7 +45,10 @@ export class ProxyServer {
           }
           res.end(modifiedContent);
         } catch (error) {
-          this.logger.error('コンテンツフィルタリング中にエラーが発生しました:', error);
+          this.logger.error(
+            'コンテンツフィルタリング中にエラーが発生しました:',
+            error,
+          );
           res.end(body);
         }
       });
@@ -66,7 +69,9 @@ export class ProxyServer {
 
   public start() {
     this.app.listen(this.config.port, this.config.host, () => {
-      this.logger.info(`プロキシサーバーが起動しました - http://${this.config.host}:${this.config.port}`);
+      this.logger.info(
+        `プロキシサーバーが起動しました - http://${this.config.host}:${this.config.port}`,
+      );
     });
   }
 }

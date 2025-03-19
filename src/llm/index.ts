@@ -5,7 +5,7 @@ import { OpenRouterFilter } from './openrouter';
 
 /**
  * LLMフィルターを作成するファクトリー関数
- * 
+ *
  * @param config アプリケーション設定
  * @returns 設定に基づいた適切なContentFilterインスタンス
  */

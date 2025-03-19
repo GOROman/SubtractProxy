@@ -38,7 +38,8 @@ export class OpenRouterFilter implements ContentFilter {
         messages: [
           {
             role: 'system',
-            content: 'あなたはWebコンテンツフィルターです。以下のコンテンツを分析し、不要な情報を削除または要約してください。',
+            content:
+              'あなたはWebコンテンツフィルターです。以下のコンテンツを分析し、不要な情報を削除または要約してください。',
           },
           {
             role: 'user',
@@ -53,7 +54,10 @@ export class OpenRouterFilter implements ContentFilter {
       return response.choices[0]?.message?.content || content;
     } catch (error) {
       // エラーをログに記録し、元のコンテンツを返す
-      context.logger.error('OpenRouterフィルタリング中にエラーが発生しました:', error);
+      context.logger.error(
+        'OpenRouterフィルタリング中にエラーが発生しました:',
+        error,
+      );
       return content;
     }
   }
