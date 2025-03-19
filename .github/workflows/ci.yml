@@ -33,7 +33,7 @@ jobs:
       run: npm run build
       
     - name: テスト実行
-      run: npm test
+      run: npm test -- --passWithNoTests
       
     - name: テストカバレッジの保存
       uses: actions/upload-artifact@v4

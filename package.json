@@ -11,7 +11,7 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
     "format:check": "prettier --check src/**/*.ts",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",

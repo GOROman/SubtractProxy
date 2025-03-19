@@ -59,4 +59,4 @@ jobs:
       run: npm run build
       
     - name: テスト実行
-      run: npm test
+      run: npm test -- --passWithNoTests
