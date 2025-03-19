@@ -11,6 +11,6 @@
   },
   "logging": {
     "level": "info",
-    "file": "logs/proxy.log"
+    "file": "proxy.log"
   }
 }
