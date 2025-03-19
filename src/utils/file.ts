@@ -24,11 +24,13 @@ export const readJsonFile = <T>(filePath: string): T | null => {
     if (!fileExists(filePath)) {
       return null;
     }
-    
+
     const content = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(content) as T;
   } catch (error) {
-    throw new Error(`JSONファイルの読み込みに失敗しました: ${filePath} - ${error}`);
+    throw new Error(
+      `JSONファイルの読み込みに失敗しました: ${filePath} - ${error}`,
+    );
   }
 };
 
