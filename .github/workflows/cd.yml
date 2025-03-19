@@ -1,0 +1,62 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Node.jsのセットアップ
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: 依存関係のインストール
+      run: npm ci
+    
+    - name: ビルド
+      run: npm run build
+    
+    - name: デプロイ準備
+      run: |
+        mkdir -p dist
+        cp package.json dist/
+        cp package-lock.json dist/
+        cp config.example.json dist/config.json
+    
+    # ここにデプロイ先に応じたデプロイステップを追加
+    # 例: AWS、GCP、Azureなど
+    
+    - name: デプロイ完了通知
+      run: echo "デプロイが完了しました"
+
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Node.jsのセットアップ
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: 依存関係のインストール
+      run: npm ci
+    
+    - name: コードのリント
+      run: npm run lint
+      
+    - name: ビルド
+      run: npm run build
+      
+    - name: テスト実行
+      run: npm test

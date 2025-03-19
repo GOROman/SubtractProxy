@@ -1,0 +1,32 @@
+name: コード品質チェック
+
+on:
+  push:
+    branches-ignore: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Node.jsのセットアップ
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: 依存関係のインストール
+      run: npm ci
+    
+    - name: TypeScript型チェック
+      run: npx tsc --noEmit
+    
+    - name: コードのリント
+      run: npm run lint
+    
+    - name: コードのフォーマットチェック
+      run: npx prettier --check "src/**/*.ts"

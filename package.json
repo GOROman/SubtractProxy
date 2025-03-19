@@ -8,8 +8,14 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
-    "test": "jest"
+    "format:check": "prettier --check src/**/*.ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "type-check": "tsc --noEmit",
+    "ci": "npm run lint && npm run format:check && npm run type-check && npm run test:coverage"
   },
   "author": "GOROman",
   "license": "MIT",
