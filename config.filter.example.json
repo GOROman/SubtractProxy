@@ -1,0 +1,106 @@
+{
+  "enabled": true,
+  "ruleSets": [
+    {
+      "name": "トラッキングパラメータ除去",
+      "description": "URLからトラッキングパラメータを除去します",
+      "enabled": true,
+      "rules": [
+        {
+          "name": "一般的なトラッキングパラメータ",
+          "enabled": true,
+          "pattern": "utm_.*|fbclid|gclid|yclid|dclid|zanpid|mscklid",
+          "action": "remove-param",
+          "priority": 100
+        }
+      ]
+    },
+    {
+      "name": "広告ブロック",
+      "description": "広告要素をブロックします",
+      "enabled": true,
+      "condition": {
+        "contentTypePattern": "text/html"
+      },
+      "rules": [
+        {
+          "name": "広告コンテナ",
+          "enabled": true,
+          "selector": ".ad-container, .advertisement, [class*='ad-'], [id*='ad-'], [class*='ads-'], [id*='ads-']",
+          "action": "remove",
+          "priority": 90
+        },
+        {
+          "name": "広告iframes",
+          "enabled": true,
+          "selector": "iframe[src*='ads'], iframe[src*='doubleclick'], iframe[src*='googleadservices']",
+          "action": "remove",
+          "priority": 90
+        }
+      ]
+    },
+    {
+      "name": "センシティブ情報マスキング",
+      "description": "クレジットカード番号などのセンシティブ情報をマスクします",
+      "enabled": true,
+      "rules": [
+        {
+          "name": "クレジットカード番号",
+          "enabled": true,
+          "pattern": "\\b(?:\\d[ -]*?){13,16}\\b",
+          "action": "replace",
+          "replacement": "[クレジットカード情報]",
+          "priority": 80
+        },
+        {
+          "name": "電話番号",
+          "enabled": true,
+          "pattern": "\\b(?:0\\d{1,4}[- ]?\\d{1,4}[- ]?\\d{4})\\b",
+          "action": "replace",
+          "replacement": "[電話番号]",
+          "priority": 80
+        }
+      ]
+    },
+    {
+      "name": "ソーシャルメディアウィジェット",
+      "description": "ソーシャルメディアウィジェットを削除します",
+      "enabled": true,
+      "condition": {
+        "contentTypePattern": "text/html"
+      },
+      "rules": [
+        {
+          "name": "Twitterウィジェット",
+          "enabled": true,
+          "selector": ".twitter-timeline, .twitter-tweet, .twitter-follow-button",
+          "action": "remove",
+          "priority": 70
+        },
+        {
+          "name": "Facebookウィジェット",
+          "enabled": true,
+          "selector": ".fb-like, .fb-share-button, .fb-comments",
+          "action": "remove",
+          "priority": 70
+        }
+      ]
+    },
+    {
+      "name": "不適切な言葉のフィルタリング",
+      "description": "不適切な言葉をフィルタリングします",
+      "enabled": true,
+      "rules": [
+        {
+          "name": "不適切な言葉",
+          "enabled": true,
+          "pattern": "\\b(不適切な単語1|不適切な単語2|不適切な単語3)\\b",
+          "action": "replace",
+          "replacement": "[不適切なコンテンツ]",
+          "caseSensitive": false,
+          "priority": 60
+        }
+      ]
+    }
+  ]
+}

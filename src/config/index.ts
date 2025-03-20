@@ -19,6 +19,10 @@ const defaultConfig: Config = {
   logging: {
     level: 'info',
   },
+  filtering: {
+    enabled: false,
+    configPath: 'config.filter.json',
+  },
 };
 
 /**
@@ -89,6 +93,13 @@ export const overrideConfigFromEnv = (config: Config): Config => {
 
   const loggingFile = getEnv('LOGGING_FILE');
   if (loggingFile !== undefined) envConfig.logging.file = loggingFile;
+
+  // フィルタリング設定
+  const filteringEnabled = getEnvBoolean('FILTERING_ENABLED');
+  if (filteringEnabled !== undefined) envConfig.filtering.enabled = filteringEnabled;
+
+  const filteringConfigPath = getEnv('FILTERING_CONFIG_PATH');
+  if (filteringConfigPath !== undefined) envConfig.filtering.configPath = filteringConfigPath;
 
   return envConfig;
 };

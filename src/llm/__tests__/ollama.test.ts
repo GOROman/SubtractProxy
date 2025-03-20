@@ -44,6 +44,10 @@ describe('OllamaFilter', () => {
         level: 'info',
         file: 'proxy.log',
       },
+      filtering: {
+        enabled: false,
+        configPath: 'config.filter.json',
+      },
     };
 
     // テスト用のコンテキストを作成
