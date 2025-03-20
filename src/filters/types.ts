@@ -78,7 +78,12 @@ export interface FilterRuleSet {
   description?: string;
   enabled: boolean;
   condition?: FilterCondition;
-  rules: (PatternFilterRule | SelectorFilterRule | ParamFilterRule | ContentTypeFilterRule)[];
+  rules: (
+    PatternFilterRule | 
+    SelectorFilterRule | 
+    ParamFilterRule | 
+    ContentTypeFilterRule
+  )[];
 }
 
 /**

@@ -4,7 +4,6 @@ import { Config } from '../config';
 import { createLogger } from '../utils/logger';
 import { ContentFilter, ProxyContext } from './types';
 import {
-  AppError,
   ProxyError,
   NetworkError,
   errorHandler,
@@ -81,7 +80,8 @@ export class ProxyServer {
 
       // レスポンスステータスコードのログ記録
       this.logger.debug(
-        `プロキシレスポンス: ${proxyRes.statusCode} ${(req as express.Request).method} ${(req as express.Request).url}`,
+        `プロキシレスポンス: ${proxyRes.statusCode} ${(req as express.Request).method} ` +
+        `${(req as express.Request).url}`,
       );
 
       let body = '';
@@ -215,7 +215,7 @@ export class ProxyServer {
     }
   }
 
-  public start() {
+  public start(): ReturnType<typeof this.app.listen> {
     // プロセス全体の未処理例外ハンドラー
     process.on('uncaughtException', (error: Error) => {
       logError(this.logger, error, 'uncaughtException');
@@ -259,7 +259,7 @@ export class ProxyServer {
     });
 
     // 正常なシャットダウンのためのシグナルハンドリング
-    const gracefulShutdown = () => {
+    const gracefulShutdown = (): void => {
       this.logger.info(
         'シャットダウンシグナルを受信しました。サーバーを停止します...',
       );
