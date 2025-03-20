@@ -4,6 +4,7 @@
 
 import { JSDOM } from 'jsdom';
 import { ContentFilter, ProxyContext } from '../proxy/types';
+import * as fs from 'fs';
 import { 
   FilterConfig, 
   FilterRuleSet, 
@@ -15,6 +16,7 @@ import {
 } from './types';
 import { ConfigError, ProxyError } from '../utils/errors';
 import winston from 'winston';
+import { URL } from 'url';
 
 /**
  * カスタムフィルタリングルールを適用するフィルタークラス
@@ -340,7 +342,10 @@ export class CustomRuleFilter implements ContentFilter {
   /**
    * パターンルールをテキストに適用する
    */
-  private applyPatternRuleToText(text: string, rule: PatternFilterRule): string {
+  private applyPatternRuleToText(
+    text: string, 
+    rule: PatternFilterRule
+  ): string {
     const pattern = new RegExp(rule.pattern, rule.caseSensitive ? 'g' : 'gi');
 
     switch (rule.action) {
@@ -380,7 +385,8 @@ export class UrlParamFilter implements ContentFilter {
         return content;
       }
       
-      const url = new URL(context.originalUrl, `http://${context.req.headers.host}`);
+      const baseUrl = `http://${context.req.headers.host}`;
+      const url = new URL(context.originalUrl, baseUrl);
       let modified = false;
 
       for (const rule of this.rules) {
@@ -403,7 +409,8 @@ export class UrlParamFilter implements ContentFilter {
       if (modified) {
         // URLが変更された場合、リダイレクト用のURLを設定
         // Express.Responseの場合はredirectメソッドを使用
-        if ('redirect' in context.res && typeof context.res.redirect === 'function') {
+        if ('redirect' in context.res && 
+            typeof context.res.redirect === 'function') {
           context.res.redirect(url.pathname + url.search);
           return ''; // リダイレクト後のレスポンスは無視される
         } else {
@@ -458,7 +465,6 @@ export function createCustomFilters(config: FilterConfig, logger: winston.Logger
 export function loadFilterConfig(configPath: string): FilterConfig {
   try {
     // 実際の実装ではファイルからJSONを読み込む
-    const fs = require('fs');
     const configJson = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configJson) as FilterConfig;
     
