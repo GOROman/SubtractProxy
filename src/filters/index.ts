@@ -6,13 +6,13 @@
 import { JSDOM } from 'jsdom';
 import { ContentFilter, ProxyContext } from '../proxy/types';
 import * as fs from 'fs';
-import { 
-  FilterConfig, 
-  FilterRuleSet, 
-  PatternFilterRule, 
-  SelectorFilterRule, 
+import {
+  FilterConfig,
+  FilterRuleSet,
+  PatternFilterRule,
+  SelectorFilterRule,
   ParamFilterRule,
-  FilterActionType
+  FilterActionType,
 } from './types';
 import { ConfigError } from '../utils/errors';
 import winston from 'winston';
@@ -40,20 +40,24 @@ export class CustomRuleFilter implements ContentFilter {
     }
 
     try {
-      this.logger.debug(`カスタムフィルタリングルールを適用: ${context.originalUrl}`);
-      
+      this.logger.debug(
+        `カスタムフィルタリングルールを適用: ${context.originalUrl}`,
+      );
+
       // 適用するルールセットを選択
       const applicableRuleSets = this.getApplicableRuleSets(context);
-      
+
       if (applicableRuleSets.length === 0) {
         this.logger.debug('適用可能なルールセットがありません');
         return content;
       }
 
       // コンテンツタイプに基づいて適切なフィルタリング方法を選択
-      const contentType = context.headers && context.headers['content-type'] ? 
-        context.headers['content-type'] as string : '';
-      
+      const contentType =
+        context.headers && context.headers['content-type']
+          ? (context.headers['content-type'] as string)
+          : '';
+
       if (contentType.includes('text/html')) {
         return this.filterHtmlContent(content, applicableRuleSets);
       } else if (contentType.includes('application/json')) {
@@ -62,15 +66,18 @@ export class CustomRuleFilter implements ContentFilter {
         return this.filterTextContent(content, applicableRuleSets);
       } else {
         // サポートされていないコンテンツタイプ
-        this.logger.debug(`サポートされていないコンテンツタイプ: ${contentType}`);
+        this.logger.debug(
+          `サポートされていないコンテンツタイプ: ${contentType}`,
+        );
         return content;
       }
     } catch (error) {
-      const errorMessage = error instanceof Error 
-       ? error.message 
-       : String(error);
-      this.logger.error(`フィルタリング中にエラーが発生しました: ${errorMessage}`);
-      
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `フィルタリング中にエラーが発生しました: ${errorMessage}`,
+      );
+
       // エラーが発生した場合は元のコンテンツを返す
       return content;
     }
@@ -80,7 +87,7 @@ export class CustomRuleFilter implements ContentFilter {
    * 現在のコンテキストに適用可能なルールセットを取得する
    */
   private getApplicableRuleSets(context: ProxyContext): FilterRuleSet[] {
-    return this.config.ruleSets.filter(ruleSet => {
+    return this.config.ruleSets.filter((ruleSet) => {
       if (!ruleSet.enabled) {
         return false;
       }
@@ -100,10 +107,11 @@ export class CustomRuleFilter implements ContentFilter {
 
       // コンテンツタイプパターンの確認
       if (ruleSet.condition.contentTypePattern && context.headers) {
-        const contentType = context.headers['content-type'] ? 
-          context.headers['content-type'] as string : '';
+        const contentType = context.headers['content-type']
+          ? (context.headers['content-type'] as string)
+          : '';
         const pattern = ruleSet.condition.contentTypePattern;
-       const contentTypeRegex = new RegExp(pattern);
+        const contentTypeRegex = new RegExp(pattern);
         if (!contentTypeRegex.test(contentType)) {
           return false;
         }
@@ -112,8 +120,9 @@ export class CustomRuleFilter implements ContentFilter {
       // ヘッダーパターンの確認
       if (ruleSet.condition.headerPattern && context.headers) {
         const headerName = ruleSet.condition.headerPattern.name;
-        const headerValue = context.headers[headerName] ? 
-          context.headers[headerName] as string : '';
+        const headerValue = context.headers[headerName]
+          ? (context.headers[headerName] as string)
+          : '';
         const headerRegex = new RegExp(ruleSet.condition.headerPattern.value);
         if (!headerRegex.test(headerValue)) {
           return false;
@@ -128,16 +137,16 @@ export class CustomRuleFilter implements ContentFilter {
    * HTMLコンテンツにフィルタリングルールを適用する
    */
   private filterHtmlContent(
-   content: string, 
-   ruleSets: FilterRuleSet[]
- ): string {
+    content: string,
+    ruleSets: FilterRuleSet[],
+  ): string {
     try {
       const dom = new JSDOM(content);
       const document = dom.window.document;
 
       // ルールセットを優先度順にソート
-      const sortedRuleSets = [...ruleSets].sort((a, b) => 
-        (b.rules[0]?.priority || 0) - (a.rules[0]?.priority || 0)
+      const sortedRuleSets = [...ruleSets].sort(
+        (a, b) => (b.rules[0]?.priority || 0) - (a.rules[0]?.priority || 0),
       );
 
       for (const ruleSet of sortedRuleSets) {
@@ -153,9 +162,9 @@ export class CustomRuleFilter implements ContentFilter {
             // パターンルールの適用
             // HTMLの場合はテキストノードに対して適用
             this.applyPatternRuleToTextNodes(
-             document, 
-             rule as PatternFilterRule
-           );
+              document,
+              rule as PatternFilterRule,
+            );
           }
         }
       }
@@ -171,15 +180,15 @@ export class CustomRuleFilter implements ContentFilter {
    * JSONコンテンツにフィルタリングルールを適用する
    */
   private filterJsonContent(
-   content: string, 
-   ruleSets: FilterRuleSet[]
- ): string {
+    content: string,
+    ruleSets: FilterRuleSet[],
+  ): string {
     try {
       let jsonObj = JSON.parse(content);
-      
+
       // ルールセットを優先度順にソート
-      const sortedRuleSets = [...ruleSets].sort((a, b) => 
-        (b.rules[0]?.priority || 0) - (a.rules[0]?.priority || 0)
+      const sortedRuleSets = [...ruleSets].sort(
+        (a, b) => (b.rules[0]?.priority || 0) - (a.rules[0]?.priority || 0),
       );
 
       for (const ruleSet of sortedRuleSets) {
@@ -204,15 +213,15 @@ export class CustomRuleFilter implements ContentFilter {
    * テキストコンテンツにフィルタリングルールを適用する
    */
   private filterTextContent(
-   content: string, 
-   ruleSets: FilterRuleSet[]
- ): string {
+    content: string,
+    ruleSets: FilterRuleSet[],
+  ): string {
     try {
       let result = content;
-      
+
       // ルールセットを優先度順にソート
-      const sortedRuleSets = [...ruleSets].sort((a, b) => 
-        (b.rules[0]?.priority || 0) - (a.rules[0]?.priority || 0)
+      const sortedRuleSets = [...ruleSets].sort(
+        (a, b) => (b.rules[0]?.priority || 0) - (a.rules[0]?.priority || 0),
       );
 
       for (const ruleSet of sortedRuleSets) {
@@ -228,7 +237,9 @@ export class CustomRuleFilter implements ContentFilter {
 
       return result;
     } catch (error) {
-      this.logger.error(`テキストフィルタリング中にエラーが発生しました: ${error}`);
+      this.logger.error(
+        `テキストフィルタリング中にエラーが発生しました: ${error}`,
+      );
       return content;
     }
   }
@@ -237,19 +248,19 @@ export class CustomRuleFilter implements ContentFilter {
    * CSSセレクタルールをDOMに適用する
    */
   private applySelectorRule(
-   document: Document, 
-   rule: SelectorFilterRule
- ): void {
+    document: Document,
+    rule: SelectorFilterRule,
+  ): void {
     try {
       const elements = document.querySelectorAll(rule.selector);
-      
+
       if (elements.length === 0) {
         return;
       }
 
       this.logger.debug(
-       `セレクタ "${rule.selector}" に一致する要素が ${elements.length} 個見つかりました`
-     );
+        `セレクタ "${rule.selector}" に一致する要素が ${elements.length} 個見つかりました`,
+      );
 
       elements.forEach((element: Element) => {
         switch (rule.action) {
@@ -277,15 +288,15 @@ export class CustomRuleFilter implements ContentFilter {
    * パターンルールをテキストノードに適用する
    */
   private applyPatternRuleToTextNodes(
-   document: Document, 
-   rule: PatternFilterRule
- ): void {
+    document: Document,
+    rule: PatternFilterRule,
+  ): void {
     try {
       const textNodes: Text[] = [];
       const walker = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
-        null
+        null,
       );
 
       let node;
@@ -295,9 +306,9 @@ export class CustomRuleFilter implements ContentFilter {
 
       const pattern = new RegExp(rule.pattern, rule.caseSensitive ? 'g' : 'gi');
 
-      textNodes.forEach(textNode => {
+      textNodes.forEach((textNode) => {
         const originalText = textNode.textContent || '';
-        
+
         switch (rule.action) {
           case FilterActionType.REPLACE:
             if (rule.replacement !== undefined) {
@@ -318,7 +329,9 @@ export class CustomRuleFilter implements ContentFilter {
         }
       });
     } catch (error) {
-      this.logger.error(`テキストノードへのパターンルール適用中にエラーが発生しました: ${error}`);
+      this.logger.error(
+        `テキストノードへのパターンルール適用中にエラーが発生しました: ${error}`,
+      );
     }
   }
 
@@ -327,9 +340,9 @@ export class CustomRuleFilter implements ContentFilter {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private applyPatternRuleToJson(
-   jsonObj: unknown, 
-   rule: PatternFilterRule
- ): unknown {
+    jsonObj: unknown,
+    rule: PatternFilterRule,
+  ): unknown {
     const pattern = new RegExp(rule.pattern, rule.caseSensitive ? 'g' : 'gi');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -347,7 +360,7 @@ export class CustomRuleFilter implements ContentFilter {
             return value;
         }
       } else if (Array.isArray(value)) {
-        return value.map(item => processValue(item));
+        return value.map((item) => processValue(item));
       } else if (value !== null && typeof value === 'object') {
         return processObject(value as Record<string, unknown>);
       }
@@ -355,8 +368,8 @@ export class CustomRuleFilter implements ContentFilter {
     };
 
     const processObject = (
-     obj: Record<string, unknown>
-   ): Record<string, unknown> => {
+      obj: Record<string, unknown>,
+    ): Record<string, unknown> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: Record<string, unknown> = {};
       for (const key in obj) {
@@ -374,8 +387,8 @@ export class CustomRuleFilter implements ContentFilter {
    * パターンルールをテキストに適用する
    */
   private applyPatternRuleToText(
-    text: string, 
-    rule: PatternFilterRule
+    text: string,
+    rule: PatternFilterRule,
   ): string {
     const pattern = new RegExp(rule.pattern, rule.caseSensitive ? 'g' : 'gi');
 
@@ -415,7 +428,7 @@ export class UrlParamFilter implements ContentFilter {
       if (!context.originalUrl || !context.req.headers.host) {
         return content;
       }
-      
+
       const baseUrl = `http://${context.req.headers.host}`;
       const url = new URL(context.originalUrl, baseUrl);
       let modified = false;
@@ -440,13 +453,15 @@ export class UrlParamFilter implements ContentFilter {
       if (modified) {
         // URLが変更された場合、リダイレクト用のURLを設定
         // Express.Responseの場合はredirectメソッドを使用
-        if ('redirect' in context.res && 
-            typeof context.res.redirect === 'function') {
+        if (
+          'redirect' in context.res &&
+          typeof context.res.redirect === 'function'
+        ) {
           context.res.redirect(url.pathname + url.search);
           return ''; // リダイレクト後のレスポンスは無視される
         } else {
           // 標準のServerResponseの場合は手動でリダイレクトを設定
-          context.res.writeHead(302, { 'Location': url.pathname + url.search });
+          context.res.writeHead(302, { Location: url.pathname + url.search });
           context.res.end();
           return '';
         }
@@ -454,7 +469,9 @@ export class UrlParamFilter implements ContentFilter {
 
       return content;
     } catch (error) {
-      this.logger.error(`URLパラメータフィルタリング中にエラーが発生しました: ${error}`);
+      this.logger.error(
+        `URLパラメータフィルタリング中にエラーが発生しました: ${error}`,
+      );
       return content;
     }
   }
@@ -464,32 +481,33 @@ export class UrlParamFilter implements ContentFilter {
  * フィルタリング設定からフィルターを作成する
  */
 export function createCustomFilters(
-  config: FilterConfig, 
-  logger: winston.Logger
+  config: FilterConfig,
+  logger: winston.Logger,
 ): ContentFilter[] {
   if (!config.enabled) {
     return [];
   }
 
   const filters: ContentFilter[] = [];
-  
+
   // カスタムルールフィルターを追加
   filters.push(new CustomRuleFilter(config, logger));
-  
+
   // URLパラメータフィルターを追加
   const paramRules = config.ruleSets
-    .filter(ruleSet => ruleSet.enabled)
-    .flatMap(ruleSet => ruleSet.rules)
-    .filter(rule => 
-      rule.enabled && 
-      'action' in rule && 
-      rule.action === FilterActionType.REMOVE_PARAM
+    .filter((ruleSet) => ruleSet.enabled)
+    .flatMap((ruleSet) => ruleSet.rules)
+    .filter(
+      (rule) =>
+        rule.enabled &&
+        'action' in rule &&
+        rule.action === FilterActionType.REMOVE_PARAM,
     ) as ParamFilterRule[];
-  
+
   if (paramRules.length > 0) {
     filters.push(new UrlParamFilter(paramRules, logger));
   }
-  
+
   return filters;
 }
 
@@ -501,16 +519,20 @@ export function loadFilterConfig(configPath: string): FilterConfig {
     // 実際の実装ではファイルからJSONを読み込む
     const configJson = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(configJson) as FilterConfig;
-    
+
     // 設定の検証
     if (typeof config.enabled !== 'boolean') {
-      throw new ConfigError('フィルタリング設定の enabled プロパティが不正です');
+      throw new ConfigError(
+        'フィルタリング設定の enabled プロパティが不正です',
+      );
     }
-    
+
     if (!Array.isArray(config.ruleSets)) {
-      throw new ConfigError('フィルタリング設定の ruleSets プロパティが不正です');
+      throw new ConfigError(
+        'フィルタリング設定の ruleSets プロパティが不正です',
+      );
     }
-    
+
     return config;
   } catch (error) {
     if (error instanceof ConfigError) {

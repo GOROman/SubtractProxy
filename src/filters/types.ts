@@ -6,30 +6,30 @@
  * フィルタリングアクションの種類
  */
 export enum FilterActionType {
-  REMOVE = 'remove',       // 要素を削除
-  REPLACE = 'replace',     // 要素を置換
+  REMOVE = 'remove', // 要素を削除
+  REPLACE = 'replace', // 要素を置換
   REMOVE_PARAM = 'remove-param', // URLパラメータを削除
-  BLOCK = 'block',         // コンテンツをブロック
-  MODIFY = 'modify',       // コンテンツを修正
+  BLOCK = 'block', // コンテンツをブロック
+  MODIFY = 'modify', // コンテンツを修正
 }
 
 /**
  * フィルタリングルールの基本インターフェース
  */
 export interface FilterRule {
-  name: string;            // ルール名
-  enabled: boolean;        // 有効/無効
-  description?: string;    // 説明
-  priority?: number;       // 優先順位（高いほど先に適用）
+  name: string; // ルール名
+  enabled: boolean; // 有効/無効
+  description?: string; // 説明
+  priority?: number; // 優先順位（高いほど先に適用）
 }
 
 /**
  * パターンベースのフィルタリングルール
  */
 export interface PatternFilterRule extends FilterRule {
-  pattern: string;         // 正規表現パターン
+  pattern: string; // 正規表現パターン
   action: FilterActionType;
-  replacement?: string;    // 置換用テキスト（actionがreplaceの場合）
+  replacement?: string; // 置換用テキスト（actionがreplaceの場合）
   caseSensitive?: boolean; // 大文字小文字を区別するか
 }
 
@@ -37,16 +37,16 @@ export interface PatternFilterRule extends FilterRule {
  * CSSセレクタベースのフィルタリングルール
  */
 export interface SelectorFilterRule extends FilterRule {
-  selector: string;        // CSSセレクタ
+  selector: string; // CSSセレクタ
   action: FilterActionType;
-  replacement?: string;    // 置換用HTML（actionがreplaceの場合）
+  replacement?: string; // 置換用HTML（actionがreplaceの場合）
 }
 
 /**
  * URLパラメータフィルタリングルール
  */
 export interface ParamFilterRule extends FilterRule {
-  pattern: string;         // パラメータ名のパターン
+  pattern: string; // パラメータ名のパターン
   action: FilterActionType.REMOVE_PARAM;
 }
 
@@ -54,7 +54,7 @@ export interface ParamFilterRule extends FilterRule {
  * コンテンツタイプフィルタリングルール
  */
 export interface ContentTypeFilterRule extends FilterRule {
-  contentType: string;     // 対象のコンテンツタイプ
+  contentType: string; // 対象のコンテンツタイプ
   action: FilterActionType;
 }
 
@@ -62,9 +62,10 @@ export interface ContentTypeFilterRule extends FilterRule {
  * フィルタリングルールの条件
  */
 export interface FilterCondition {
-  urlPattern?: string;     // 適用するURLパターン
+  urlPattern?: string; // 適用するURLパターン
   contentTypePattern?: string; // 適用するコンテンツタイプパターン
-  headerPattern?: {        // 適用するヘッダーパターン
+  headerPattern?: {
+    // 適用するヘッダーパターン
     name: string;
     value: string;
   };
@@ -79,10 +80,10 @@ export interface FilterRuleSet {
   enabled: boolean;
   condition?: FilterCondition;
   rules: (
-    PatternFilterRule | 
-    SelectorFilterRule | 
-    ParamFilterRule | 
-    ContentTypeFilterRule
+    | PatternFilterRule
+    | SelectorFilterRule
+    | ParamFilterRule
+    | ContentTypeFilterRule
   )[];
 }
 
