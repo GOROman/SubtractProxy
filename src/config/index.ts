@@ -1,7 +1,7 @@
 import { Config, ConfigSchema } from './types';
 import { readJsonFile, resolveProjectPath } from '../utils/file';
 import { getEnv, getEnvBoolean, getEnvNumber } from '../utils/env';
-import path from 'path';
+// pathモジュールは必要ないので削除
 
 /**
  * デフォルト設定
