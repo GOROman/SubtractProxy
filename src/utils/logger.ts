@@ -1,7 +1,7 @@
 import winston from 'winston';
 import { Config } from '../config';
 
-export const createLogger = (config: Config) => {
+export const createLogger = (config: Config): winston.Logger => {
   const transports: winston.transport[] = [
     new winston.transports.Console({
       format: winston.format.combine(

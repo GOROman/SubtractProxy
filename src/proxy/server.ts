@@ -17,8 +17,8 @@ export class ProxyServer {
     this.setupProxy();
   }
 
-  private setupProxy() {
-    this.proxy.on('proxyReq', (proxyReq, req, res): void => {
+  private setupProxy(): void {
+    this.proxy.on('proxyReq', (proxyReq, _req, _res): void => {
       if (this.config.ignoreRobotsTxt) {
         proxyReq.setHeader('User-Agent', 'SubtractProxy/1.0');
       }

@@ -2,7 +2,7 @@ import { loadConfig } from './config';
 import { ProxyServer } from './proxy/server';
 import { createLLMFilter } from './llm';
 
-async function main() {
+async function main(): Promise<void> {
   const config = loadConfig();
   const server = new ProxyServer(config);
 
