@@ -33,16 +33,21 @@ async function main(): Promise<void> {
 
       // フィルタリング設定をロード
       const filterConfig = loadFilterConfig(filterConfigPath);
-      
+
       // カスタムフィルターを作成して追加
       const customFilters = createCustomFilters(filterConfig, logger);
       for (const filter of customFilters) {
         server.addFilter(filter);
       }
-      
-      logger.info(`カスタムフィルタリングを有効化しました: ${customFilters.length} フィルター`);
+
+      logger.info(
+        `カスタムフィルタリングを有効化しました: ${customFilters.length} フィルター`,
+      );
     } catch (error) {
-      logger.error('カスタムフィルターの初期化中にエラーが発生しました:', error);
+      logger.error(
+        'カスタムフィルターの初期化中にエラーが発生しました:',
+        error,
+      );
     }
   }
 
