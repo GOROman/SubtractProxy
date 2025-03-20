@@ -24,7 +24,10 @@ jobs:
         cache: 'npm'
     
     - name: 依存関係のインストール
-      run: npm ci
+      run: npm install
+    
+    - name: セキュリティ脆弱性スキャン
+      run: npm audit --production
     
     - name: コードのリント
       run: npm run lint
@@ -33,7 +36,10 @@ jobs:
       run: npm run build
       
     - name: テスト実行
-      run: npm test -- --passWithNoTests
+      run: npm test -- --coverage --coverageThreshold='{"global":{"statements":80,"branches":70,"functions":80,"lines":80}}'
+      
+    - name: エラーログフォーマット検証
+      run: npm run test:error-logs
       
     - name: テストカバレッジの保存
       uses: actions/upload-artifact@v4
@@ -41,3 +47,12 @@ jobs:
         name: coverage-report-${{ matrix.node-version }}
         path: coverage/
         retention-days: 7
+      
+    - name: カバレッジレポートの表示
+      run: |
+        echo "テストカバレッジの概要:"
+        cat coverage/coverage-summary.json | jq '.total'
+        
+        # エラーハンドリング関連ファイルのカバレッジ確認
+        echo "エラーハンドリング関連ファイルのカバレッジ:"
+        cat coverage/coverage-summary.json | jq '.["/Users/goroman/Work/github/SubtractProxy/src/utils/errors.ts"]'
