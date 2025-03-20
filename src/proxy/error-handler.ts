@@ -18,6 +18,10 @@ const logger = createLogger({
   host: 'localhost',
   ignoreRobotsTxt: false,
   timeout: 30000,
+  userAgent: {
+    enabled: false,
+    rotate: false,
+  },
   llm: {
     enabled: false,
     type: 'ollama',
