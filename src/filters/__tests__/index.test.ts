@@ -2,6 +2,7 @@
  * カスタムフィルタリングルールのテスト
  */
 
+// @ts-ignore - CI環境で型定義が認識されない問題を回避するため
 import { JSDOM } from 'jsdom';
 import { CustomRuleFilter, UrlParamFilter, loadFilterConfig, createCustomFilters } from '../index';
 import { 
@@ -15,20 +16,14 @@ import { ProxyContext } from '../../proxy/types';
 
 // JSDOMのグローバル設定
 const { window } = new JSDOM('');
-// グローバル変数に型を付与
-declare global {
-  namespace NodeJS {
-    interface Global {
-      document: Document;
-      NodeFilter: typeof window.NodeFilter;
-      Node: typeof window.Node;
-    }
-  }
-}
 
-global.document = window.document;
-global.NodeFilter = window.NodeFilter;
-global.Node = window.Node;
+// グローバル変数の設定
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).document = window.document;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).NodeFilter = window.NodeFilter;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).Node = window.Node;
 
 // テスト用のロガーを作成
 const logger = createLogger({
