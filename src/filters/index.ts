@@ -231,7 +231,7 @@ export class CustomRuleFilter implements ContentFilter {
 
       this.logger.debug(`セレクタ "${rule.selector}" に一致する要素が ${elements.length} 個見つかりました`);
 
-      elements.forEach(element => {
+      elements.forEach((element: Element) => {
         switch (rule.action) {
           case FilterActionType.REMOVE:
             element.parentNode?.removeChild(element);
@@ -302,10 +302,12 @@ export class CustomRuleFilter implements ContentFilter {
   /**
    * パターンルールをJSONオブジェクトに適用する
    */
-  private applyPatternRuleToJson(jsonObj: any, rule: PatternFilterRule): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private applyPatternRuleToJson(jsonObj: unknown, rule: PatternFilterRule): unknown {
     const pattern = new RegExp(rule.pattern, rule.caseSensitive ? 'g' : 'gi');
 
-    const processValue = (value: any): any => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processValue = (value: unknown): unknown => {
       if (typeof value === 'string') {
         switch (rule.action) {
           case FilterActionType.REPLACE:
@@ -326,8 +328,10 @@ export class CustomRuleFilter implements ContentFilter {
       return value;
     };
 
-    const processObject = (obj: any): any => {
-      const result: any = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const processObject = (obj: Record<string, any>): Record<string, unknown> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: Record<string, unknown> = {};
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           result[key] = processValue(obj[key]);

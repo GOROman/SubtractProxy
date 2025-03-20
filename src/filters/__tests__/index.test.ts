@@ -15,6 +15,17 @@ import { ProxyContext } from '../../proxy/types';
 
 // JSDOMのグローバル設定
 const { window } = new JSDOM('');
+// グローバル変数に型を付与
+declare global {
+  namespace NodeJS {
+    interface Global {
+      document: Document;
+      NodeFilter: typeof window.NodeFilter;
+      Node: typeof window.Node;
+    }
+  }
+}
+
 global.document = window.document;
 global.NodeFilter = window.NodeFilter;
 global.Node = window.Node;
