@@ -4,6 +4,7 @@ export const ConfigSchema = z.object({
   port: z.number().default(8080),
   host: z.string().default('127.0.0.1'),
   ignoreRobotsTxt: z.boolean().default(false),
+  timeout: z.number().default(30000),
   llm: z.object({
     enabled: z.boolean().default(true),
     type: z.enum(['ollama', 'openrouter']).default('ollama'),
