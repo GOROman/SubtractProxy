@@ -56,9 +56,9 @@ describe('OpenRouterFilter', () => {
         error: jest.fn(),
         info: jest.fn(),
         debug: jest.fn(),
-        warn: jest.fn()
+        warn: jest.fn(),
       } as any,
-      ignoreRobotsTxt: false
+      ignoreRobotsTxt: false,
     };
   });
 
@@ -70,7 +70,7 @@ describe('OpenRouterFilter', () => {
   test('APIキーが設定されていない場合はエラーがスローされる', () => {
     const invalidConfig = { ...config };
     invalidConfig.llm.apiKey = '';
-    
+
     expect(() => {
       new OpenRouterFilter(invalidConfig);
     }).toThrow('OpenRouterフィルターにはAPIキーが必要です');
@@ -79,17 +79,17 @@ describe('OpenRouterFilter', () => {
   test('LLMが無効の場合は元のコンテンツが返される', async () => {
     const disabledConfig = { ...config };
     disabledConfig.llm.enabled = false;
-    
+
     const filter = new OpenRouterFilter(disabledConfig);
     const result = await filter.filter('テストコンテンツ', context);
-    
+
     expect(result).toBe('テストコンテンツ');
   });
 
   test('フィルターが正しくコンテンツをフィルタリングする', async () => {
     const filter = new OpenRouterFilter(config);
     const result = await filter.filter('テストコンテンツ', context);
-    
+
     expect(result).toBe('フィルタリングされたコンテンツ');
   });
 });

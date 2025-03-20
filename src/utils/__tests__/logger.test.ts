@@ -47,8 +47,8 @@ describe('ロガー', () => {
         model: 'gemma',
       },
       logging: {
-        level: 'info'
-      }
+        level: 'info',
+      },
     } as Config;
   });
 
@@ -63,7 +63,7 @@ describe('ロガー', () => {
   test('ファイルロギングが設定されている場合', () => {
     const configWithFile = { ...config };
     configWithFile.logging.file = 'logs/app.log';
-    
+
     createLogger(configWithFile);
     expect(winston.transports.File).toHaveBeenCalledWith({
       filename: configWithFile.logging.file,
@@ -77,7 +77,7 @@ describe('ロガー', () => {
     expect(winston.createLogger).toHaveBeenCalledWith(
       expect.objectContaining({
         level: 'debug',
-      })
+      }),
     );
   });
 });

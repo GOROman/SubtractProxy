@@ -5,7 +5,9 @@ export class Ollama {
   }
 
   // generateメソッドのモック
-  async generate(_params: Record<string, unknown>): Promise<{ response: string }> {
+  async generate(
+    _params: Record<string, unknown>,
+  ): Promise<{ response: string }> {
     return {
       response: 'フィルタリングされたコンテンツ',
     };
