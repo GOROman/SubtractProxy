@@ -5,6 +5,15 @@ export const ConfigSchema = z.object({
   host: z.string().default('127.0.0.1'),
   ignoreRobotsTxt: z.boolean().default(false),
   timeout: z.number().default(30000),
+  userAgent: z.object({
+    enabled: z.boolean().default(false),
+    value: z.string().optional(),
+    rotate: z.boolean().default(false),
+    presets: z.array(z.string()).optional(),
+  }).optional().default({
+    enabled: false,
+    rotate: false,
+  }),
   llm: z.object({
     enabled: z.boolean().default(true),
     type: z.enum(['ollama', 'openrouter']).default('ollama'),

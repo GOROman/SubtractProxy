@@ -5,6 +5,7 @@ import { createLogger } from '../utils/logger';
 import { ContentFilter, ProxyContext } from './types';
 import { ProxyError, NetworkError, logError, handleErrorWithFallback } from '../utils/errors';
 import { errorHandler } from './error-handler';
+import { UserAgentManager } from '../utils/user-agent';
 
 export class ProxyServer {
   private app: express.Application;
@@ -12,11 +13,13 @@ export class ProxyServer {
   private logger: ReturnType<typeof createLogger>;
   private filters: ContentFilter[] = [];
   private server: ReturnType<typeof this.app.listen> | null = null;
+  private userAgentManager: UserAgentManager;
 
   constructor(private config: Config) {
     this.app = express();
     this.proxy = httpProxy.createProxyServer({});
     this.logger = createLogger(config);
+    this.userAgentManager = new UserAgentManager(config.userAgent);
     this.setupProxy();
   }
 
@@ -48,7 +51,16 @@ export class ProxyServer {
       }
     });
 
-    this.proxy.on('proxyReq', (proxyReq, _req, _res): void => {
+    this.proxy.on('proxyReq', (proxyReq, req, _res): void => {
+      // User-Agentの設定
+      const userAgent = this.userAgentManager.getCurrentUserAgent();
+      if (userAgent) {
+        proxyReq.setHeader('User-Agent', userAgent);
+        this.logger.debug(`User-Agentを設定: ${userAgent}`, {
+          url: req.url,
+          method: req.method,
+        });
+      }
       try {
         if (this.config.ignoreRobotsTxt) {
           proxyReq.setHeader('User-Agent', 'SubtractProxy/1.0');

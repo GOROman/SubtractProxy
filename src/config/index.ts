@@ -11,6 +11,10 @@ const defaultConfig: Config = {
   host: '127.0.0.1',
   ignoreRobotsTxt: false,
   timeout: 30000,
+  userAgent: {
+    enabled: false,
+    rotate: false,
+  },
   llm: {
     enabled: true,
     type: 'ollama',

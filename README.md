@@ -8,6 +8,7 @@ A lightweight proxy server with LLM-powered content filtering capabilities.
 - 🤖 LLM-powered content filtering (Ollama, OpenRouter)
 - 🔄 Customizable content transformation
 - 🛡️ Optional robots.txt bypass
+- 🔄 Customizable User-Agent management
 - 📝 Comprehensive logging system
 
 ## Prerequisites
@@ -54,6 +55,15 @@ Create a `config.json` file in the project root:
   "logging": {
     "level": "info",
     "file": "proxy.log"
+  },
+  "userAgent": {
+    "enabled": true,
+    "rotate": true,
+    "value": "CustomUserAgent/1.0",
+    "presets": [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"
+    ]
   }
 }
 ```
@@ -71,6 +81,46 @@ Create a `config.json` file in the project root:
 2. Configure LLM settings in config.json
 3. Start SubtractProxy
 4. Content will be automatically filtered based on LLM analysis
+
+### User-Agent Management
+
+SubtractProxy provides flexible User-Agent management:
+
+1. **Custom User-Agent**
+   - Set a specific User-Agent string using the `value` field
+   ```json
+   {
+     "userAgent": {
+       "enabled": true,
+       "value": "CustomUserAgent/1.0"
+     }
+   }
+   ```
+
+2. **User-Agent Rotation**
+   - Enable automatic rotation between preset User-Agents
+   ```json
+   {
+     "userAgent": {
+       "enabled": true,
+       "rotate": true,
+       "presets": [
+         "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+       ]
+     }
+   }
+   ```
+
+3. **Disable User-Agent Modification**
+   - Keep original request's User-Agent
+   ```json
+   {
+     "userAgent": {
+       "enabled": false
+     }
+   }
+   ```
 
 ## Development
 

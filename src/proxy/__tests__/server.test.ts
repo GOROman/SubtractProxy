@@ -41,6 +41,10 @@ describe('プロキシサーバー', () => {
       logging: {
         level: 'info',
       },
+      userAgent: {
+        enabled: false,
+        rotate: false,
+      },
     } as Config;
 
     // モックの作成
@@ -53,10 +57,14 @@ describe('プロキシサーバー', () => {
       on: jest.fn().mockReturnThis(),
     };
 
-    mockProxy = {
-      on: jest.fn().mockReturnThis(),
-      web: jest.fn(),
-    };
+    // EventEmitterを継承したモックプロキシを作成
+    const { EventEmitter } = require('events');
+    mockProxy = new EventEmitter();
+    mockProxy.web = jest.fn();
+    mockProxy.on = jest.fn().mockImplementation((event, callback) => {
+      EventEmitter.prototype.on.call(mockProxy, event, callback);
+      return mockProxy;
+    });
 
     mockFilter = {
       name: 'TestFilter',
@@ -71,6 +79,9 @@ describe('プロキシサーバー', () => {
     (express as unknown as jest.Mock).mockReturnValue(mockApp);
     (httpProxy.createProxyServer as jest.Mock).mockReturnValue(mockProxy);
     (createLLMFilter as jest.Mock).mockReturnValue(mockFilter);
+
+    // モックプロキシのイベントリスナーをクリア
+    mockProxy.removeAllListeners();
   });
 
   test('プロキシサーバーが正しく作成される', () => {
@@ -326,6 +337,81 @@ describe('プロキシサーバー', () => {
 
     // nextがエラーとともに呼ばれたか確認
     expect(next).toHaveBeenCalledWith(expect.any(Error));
+  });
+
+  describe('User-Agent機能', () => {
+    test('User-Agentが無効の場合、ヘッダーが設定されない', () => {
+      config.userAgent.enabled = false;
+      const server = new ProxyServer(config);
+      server.start();
+
+      // プロキシリクエストのイベントをシミュレート
+      const mockProxyReq = {
+        setHeader: jest.fn(),
+      };
+      const mockReq = {
+        url: 'http://example.com',
+        method: 'GET',
+      };
+
+      // proxyReqイベントを発火
+      mockProxy.emit('proxyReq', mockProxyReq, mockReq, {});
+
+      // User-Agentヘッダーが設定されていないことを確認
+      expect(mockProxyReq.setHeader).not.toHaveBeenCalledWith('User-Agent', expect.any(String));
+    });
+
+    test('カスタムUser-Agentが正しく設定される', () => {
+      const customUA = 'CustomUserAgent/1.0';
+      config.userAgent = {
+        enabled: true,
+        rotate: false,
+        value: customUA,
+      };
+      const server = new ProxyServer(config);
+      server.start();
+
+      const mockProxyReq = {
+        setHeader: jest.fn(),
+      };
+      const mockReq = {
+        url: 'http://example.com',
+        method: 'GET',
+      };
+
+      mockProxy.emit('proxyReq', mockProxyReq, mockReq, {});
+
+      expect(mockProxyReq.setHeader).toHaveBeenCalledWith('User-Agent', customUA);
+    });
+
+    test('ローテーションが有効な場合、User-Agentが切り替わる', () => {
+      const presets = ['UA1', 'UA2', 'UA3'];
+      config.userAgent = {
+        enabled: true,
+        rotate: true,
+        presets,
+      };
+      const server = new ProxyServer(config);
+      server.start();
+
+      const mockProxyReq1 = { setHeader: jest.fn() };
+      const mockProxyReq2 = { setHeader: jest.fn() };
+      const mockReq = {
+        url: 'http://example.com',
+        method: 'GET',
+      };
+
+      // 複数回リクエストをシミュレート
+      mockProxy.emit('proxyReq', mockProxyReq1, mockReq, {});
+      mockProxy.emit('proxyReq', mockProxyReq2, mockReq, {});
+
+      // 異なるUser-Agentが使用されていることを確認
+      const ua1 = mockProxyReq1.setHeader.mock.calls[0][1];
+      const ua2 = mockProxyReq2.setHeader.mock.calls[0][1];
+      expect(presets).toContain(ua1);
+      expect(presets).toContain(ua2);
+      expect(ua1).not.toBe(ua2);
+    });
   });
 
   test('サーバーのエラーハンドリングが正しく動作する', () => {
