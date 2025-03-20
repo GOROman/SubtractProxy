@@ -22,13 +22,12 @@ const DEFAULT_USER_AGENTS = [
  */
 export class UserAgentManager {
   private currentIndex: number = 0;
-  private userAgents: string[];
+  private userAgents: string[] = [];
   private config: Config['userAgent'];
 
   constructor(config: Config['userAgent']) {
     this.config = config;
-    this.userAgents = config.presets || DEFAULT_USER_AGENTS;
-    this.shuffleUserAgents();
+    this.reset();
   }
 
   /**
@@ -86,7 +85,12 @@ export class UserAgentManager {
    */
   public reset(): void {
     this.currentIndex = 0;
-    this.userAgents = this.config.presets || DEFAULT_USER_AGENTS;
-    this.shuffleUserAgents();
+    // 設定から新しい配列を作成して完全にリセット
+    const baseAgents = this.config.presets || DEFAULT_USER_AGENTS;
+    this.userAgents = [...baseAgents];
+    // ローテーションが有効な場合のみシャッフル
+    if (this.config.rotate) {
+      this.shuffleUserAgents();
+    }
   }
 }

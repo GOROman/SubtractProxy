@@ -99,20 +99,35 @@ describe('UserAgentManager', () => {
         presets,
       });
 
+      // プリセットに含まれていないUser-Agentを追加
       const newUA = 'New User Agent';
       manager.addUserAgent(newUA);
-      manager.reset();
 
-      // リセット後は新しく追加したUAが含まれていないことを確認
-      let found = false;
-      for (let i = 0; i < 5; i++) {
+      // リセット前に新しいUser-Agentが含まれていることを確認
+      let foundBefore = false;
+      for (let i = 0; i < 10; i++) {
         if (manager.getCurrentUserAgent() === newUA) {
-          found = true;
+          foundBefore = true;
           break;
         }
       }
+      expect(foundBefore).toBe(true);
 
-      expect(found).toBe(false);
+      // リセット後
+      manager.reset();
+
+      // リセット後は元のプリセットのみが使用されることを確認
+      const usedUAs = new Set<string>();
+      for (let i = 0; i < 10; i++) {
+        const ua = manager.getCurrentUserAgent();
+        usedUAs.add(ua!);
+      }
+
+      expect(usedUAs.size).toBeLessThanOrEqual(presets.length);
+      expect(usedUAs.has(newUA)).toBe(false);
+      for (const ua of usedUAs) {
+        expect(presets).toContain(ua);
+      }
     });
   });
 });
