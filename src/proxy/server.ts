@@ -3,13 +3,8 @@ import httpProxy from 'http-proxy';
 import { Config } from '../config';
 import { createLogger } from '../utils/logger';
 import { ContentFilter, ProxyContext } from './types';
-import {
-  ProxyError,
-  NetworkError,
-  errorHandler,
-  handleErrorWithFallback,
-  logError,
-} from '../utils/errors';
+import { ProxyError, NetworkError, logError, handleErrorWithFallback } from '../utils/errors';
+import { errorHandler } from './error-handler';
 
 export class ProxyServer {
   private app: express.Application;
@@ -178,7 +173,7 @@ export class ProxyServer {
     });
 
     // エラーハンドリングミドルウェアの追加
-    this.app.use(errorHandler(this.logger));
+    this.app.use(errorHandler);
 
     // 404ハンドラー
     this.app.use('*', (req, res, next): void => {

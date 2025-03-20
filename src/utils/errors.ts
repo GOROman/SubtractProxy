@@ -109,18 +109,28 @@ export function logError(
   error: Error,
   context?: string,
 ): void {
-  const errorDetails = {
+  interface ErrorDetails {
+    message: string;
+    stack?: string;
+    context?: string;
+    statusCode?: number;
+    isOperational?: boolean;
+    code?: string;
+    metadata?: Record<string, unknown>;
+  }
+
+  const errorDetails: ErrorDetails = {
     message: error.message,
     stack: error.stack,
     context,
   };
 
   if (error instanceof AppError) {
-    errorDetails['statusCode'] = error.statusCode;
-    errorDetails['isOperational'] = error.isOperational;
-    errorDetails['code'] = error.code;
+    errorDetails.statusCode = error.statusCode;
+    errorDetails.isOperational = error.isOperational;
+    errorDetails.code = error.code;
     if (error.metadata) {
-      errorDetails['metadata'] = error.metadata;
+      errorDetails.metadata = error.metadata;
     }
   }
 
