@@ -10,6 +10,12 @@ export interface ProxyContext {
   originalUrl?: string;
   statusCode?: number;
   headers?: IncomingHttpHeaders;
+  userAgent?: {
+    enabled: boolean;
+    value?: string;
+    rotate: boolean;
+    presets?: string[];
+  };
 }
 
 export interface ContentFilter {
