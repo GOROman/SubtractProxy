@@ -21,7 +21,7 @@ export class AppError extends Error {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
-    
+
     if (stack) {
       this.stack = stack;
     } else {
@@ -80,7 +80,7 @@ export const logError = (
     stack: error.stack,
     context: context || 'アプリケーション',
   };
-  
+
   if (error instanceof AppError && error.isOperational) {
     logger.warn(`運用エラー: ${JSON.stringify(errorDetails)}`);
   } else {
@@ -91,9 +91,7 @@ export const logError = (
 /**
  * エラーハンドリングミドルウェア
  */
-export const errorHandler = (
-  logger: winston.Logger,
-) => {
+export const errorHandler = (logger: winston.Logger) => {
   return (
     err: Error,
     _req: Request,
@@ -103,14 +101,14 @@ export const errorHandler = (
   ): void => {
     let statusCode = 500;
     let errorMessage = 'サーバー内部エラーが発生しました';
-    
+
     if (err instanceof AppError) {
       statusCode = err.statusCode;
       errorMessage = err.message;
     }
-    
+
     logError(logger, err);
-    
+
     res.status(statusCode).json({
       status: 'error',
       message: errorMessage,
@@ -130,7 +128,11 @@ export const handleErrorWithFallback = async <T>(
   try {
     return await operation();
   } catch (error) {
-    logError(logger, error instanceof Error ? error : new Error(String(error)), context);
+    logError(
+      logger,
+      error instanceof Error ? error : new Error(String(error)),
+      context,
+    );
     return fallback();
   }
 };

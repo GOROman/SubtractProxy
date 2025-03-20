@@ -50,7 +50,7 @@ export const overrideConfigFromEnv = (config: Config): Config => {
 
   const host = getEnv('HOST');
   if (host !== undefined) envConfig.host = host;
-  
+
   const timeout = getEnvNumber('TIMEOUT');
   if (timeout !== undefined) envConfig.timeout = timeout;
 
