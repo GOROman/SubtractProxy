@@ -3,7 +3,6 @@
  */
 
 // DOM型定義を使用するためにtsconfig.jsonでlibに"DOM"を追加しました
-// @ts-ignore - CI環境で型定義が認識されない問題を回避するため
 import { JSDOM } from 'jsdom';
 import { ContentFilter, ProxyContext } from '../proxy/types';
 import * as fs from 'fs';

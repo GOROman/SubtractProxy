@@ -2,7 +2,6 @@
  * カスタムフィルタリングルールのテスト
  */
 
-// @ts-ignore - CI環境で型定義が認識されない問題を回避するため
 import { JSDOM } from 'jsdom';
 import { CustomRuleFilter, UrlParamFilter, loadFilterConfig, createCustomFilters } from '../index';
 import { 
