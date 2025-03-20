@@ -1,17 +1,16 @@
 /**
- * エラーユーティリティのテスト
+ * エラーハンドリングのテスト
  */
 
 import winston from 'winston';
-import { Request, Response } from 'express';
 import {
   AppError,
   NetworkError,
   LLMError,
   ConfigError,
   ProxyError,
+  isAppError,
   logError,
-  errorHandler,
   handleErrorWithFallback,
 } from '../errors';
 
@@ -31,168 +30,161 @@ describe('エラークラスのテスト', () => {
     jest.clearAllMocks();
   });
 
-  test('AppErrorが正しく初期化される', () => {
-    const error = new AppError('テストエラー', 400, true);
-    expect(error.message).toBe('テストエラー');
-    expect(error.statusCode).toBe(400);
-    expect(error.isOperational).toBe(true);
-    expect(error.stack).toBeDefined();
-  });
-
-  test('AppErrorがスタックを受け入れる', () => {
-    const customStack = 'カスタムスタック';
-    const error = new AppError('テストエラー', 400, true, customStack);
-    expect(error.stack).toBe(customStack);
-  });
-
-  test('NetworkErrorが正しく初期化される', () => {
-    const error = new NetworkError('接続エラー');
-    expect(error.message).toBe('ネットワークエラー: 接続エラー');
-    expect(error.statusCode).toBe(503);
-  });
-
-  test('LLMErrorが正しく初期化される', () => {
-    const error = new LLMError('モデルエラー');
-    expect(error.message).toBe('LLMエラー: モデルエラー');
-    expect(error.statusCode).toBe(500);
-  });
-
-  test('ConfigErrorが正しく初期化される', () => {
-    const error = new ConfigError('設定ファイルエラー');
-    expect(error.message).toBe('設定エラー: 設定ファイルエラー');
-    expect(error.statusCode).toBe(500);
-  });
-
-  test('ProxyErrorが正しく初期化される', () => {
-    const error = new ProxyError('プロキシエラー');
-    expect(error.message).toBe('プロキシエラー: プロキシエラー');
-    expect(error.statusCode).toBe(502);
-  });
-});
-
-describe('logErrorのテスト', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('運用エラーが警告としてログに記録される', () => {
-    const error = new AppError('運用エラー', 400, true);
-    logError(mockLogger, error, 'テスト');
-    expect(mockLogger.warn).toHaveBeenCalled();
-    expect(mockLogger.error).not.toHaveBeenCalled();
-  });
-
-  test('非運用エラーがエラーとしてログに記録される', () => {
-    const error = new Error('予期しないエラー');
-    logError(mockLogger, error, 'テスト');
-    expect(mockLogger.error).toHaveBeenCalled();
-    expect(mockLogger.warn).not.toHaveBeenCalled();
-  });
-
-  test('コンテキストが指定されていない場合、デフォルト値が使用される', () => {
-    const error = new Error('エラー');
-    logError(mockLogger, error);
-    expect(mockLogger.error).toHaveBeenCalled();
-    const logCall = mockLogger.error.mock.calls[0][0];
-    expect(logCall).toContain('アプリケーション');
-  });
-});
-
-describe('errorHandlerのテスト', () => {
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
-  let mockNext: jest.Mock;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockRequest = {};
-    mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
-    mockNext = jest.fn();
-  });
-
-  test('AppErrorが適切に処理される', () => {
-    const error = new AppError('カスタムエラー', 400);
-    const handler = errorHandler(mockLogger);
-
-    handler(error, mockRequest as Request, mockResponse as Response, mockNext);
-
-    expect(mockResponse.status).toHaveBeenCalledWith(400);
-    expect(mockResponse.json).toHaveBeenCalledWith({
-      status: 'error',
-      message: 'カスタムエラー',
+  describe('AppError', () => {
+    test('基本的なエラー情報を持つ', () => {
+      const error = new AppError('テストエラー', 'TEST_ERROR');
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('テストエラー');
+      expect(error.code).toBe('TEST_ERROR');
+      expect(error.statusCode).toBe(500);
+      expect(error.isOperational).toBe(true);
     });
-    expect(mockLogger.warn).toHaveBeenCalled();
+
+    test('メタデータを設定できる', () => {
+      const metadata = { detail: 'テスト詳細' };
+      const error = new AppError('テストエラー', 'TEST_ERROR', 400, metadata);
+      expect(error.metadata).toEqual(metadata);
+      expect(error.statusCode).toBe(400);
+    });
+
+    test('運用エラーフラグを設定できる', () => {
+      const error = new AppError('システムエラー', 'SYSTEM_ERROR', 500, undefined, false);
+      expect(error.isOperational).toBe(false);
+    });
+
+    test('スタックトレースを設定できる', () => {
+      const customStack = 'カスタムスタック';
+      const error = new AppError('テストエラー', 'TEST_ERROR', 500, undefined, true, customStack);
+      expect(error.stack).toBe(customStack);
+    });
   });
 
-  test('一般的なエラーが500として処理される', () => {
-    const error = new Error('一般的なエラー');
-    const handler = errorHandler(mockLogger);
-
-    handler(error, mockRequest as Request, mockResponse as Response, mockNext);
-
-    expect(mockResponse.status).toHaveBeenCalledWith(500);
-    expect(mockResponse.json).toHaveBeenCalledWith({
-      status: 'error',
-      message: 'サーバー内部エラーが発生しました',
+  describe('NetworkError', () => {
+    test('ネットワークエラーを生成する', () => {
+      const originalError = new Error('元のエラー');
+      const error = new NetworkError('接続エラー', originalError);
+      expect(error).toBeInstanceOf(AppError);
+      expect(error.message).toBe('ネットワークエラー: 接続エラー');
+      expect(error.code).toBe('NETWORK_ERROR');
+      expect(error.statusCode).toBe(503);
+      expect(error.cause).toBe(originalError);
     });
-    expect(mockLogger.error).toHaveBeenCalled();
+  });
+
+  describe('LLMError', () => {
+    test('LLMエラーを生成する', () => {
+      const metadata = { model: 'test-model' };
+      const error = new LLMError('モデルエラー', metadata);
+      expect(error).toBeInstanceOf(AppError);
+      expect(error.message).toBe('LLMエラー: モデルエラー');
+      expect(error.code).toBe('LLM_ERROR');
+      expect(error.statusCode).toBe(500);
+      expect(error.metadata).toEqual(metadata);
+    });
+  });
+
+  describe('ConfigError', () => {
+    test('設定エラーを生成する', () => {
+      const metadata = { config: 'test.json' };
+      const error = new ConfigError('設定ファイルが見つかりません', metadata);
+      expect(error).toBeInstanceOf(AppError);
+      expect(error.message).toBe('設定エラー: 設定ファイルが見つかりません');
+      expect(error.code).toBe('CONFIG_ERROR');
+      expect(error.statusCode).toBe(500);
+      expect(error.metadata).toEqual(metadata);
+    });
+  });
+
+  describe('ProxyError', () => {
+    test('プロキシエラーを生成する', () => {
+      const metadata = { url: 'http://example.com' };
+      const error = new ProxyError('プロキシ接続エラー', metadata);
+      expect(error).toBeInstanceOf(AppError);
+      expect(error.message).toBe('プロキシエラー: プロキシ接続エラー');
+      expect(error.code).toBe('PROXY_ERROR');
+      expect(error.statusCode).toBe(502);
+      expect(error.metadata).toEqual(metadata);
+    });
+  });
+
+  describe('isAppError', () => {
+    test('AppErrorのインスタンスを正しく判定する', () => {
+      const appError = new AppError('テストエラー');
+      const networkError = new NetworkError('ネットワークエラー');
+      const standardError = new Error('標準エラー');
+
+      expect(isAppError(appError)).toBe(true);
+      expect(isAppError(networkError)).toBe(true);
+      expect(isAppError(standardError)).toBe(false);
+      expect(isAppError(null)).toBe(false);
+      expect(isAppError(undefined)).toBe(false);
+      expect(isAppError({})).toBe(false);
+    });
   });
 });
 
-describe('handleErrorWithFallbackのテスト', () => {
+describe('エラーユーティリティのテスト', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('操作が成功した場合、結果が返される', async () => {
-    const operation = jest.fn().mockResolvedValue('成功');
-    const fallback = jest.fn().mockReturnValue('フォールバック');
+  describe('logError', () => {
+    test('AppErrorの詳細情報がログに記録される', () => {
+      const error = new AppError('テストエラー', 'TEST_ERROR', 400, { test: true });
+      logError(mockLogger, error, 'テスト');
+      expect(mockLogger.error).toHaveBeenCalledWith('エラーが発生しました:', expect.objectContaining({
+        message: 'テストエラー',
+        code: 'TEST_ERROR',
+        statusCode: 400,
+        metadata: { test: true },
+        context: 'テスト',
+      }));
+    });
 
-    const result = await handleErrorWithFallback(
-      mockLogger,
-      operation,
-      fallback,
-    );
-
-    expect(result).toBe('成功');
-    expect(operation).toHaveBeenCalled();
-    expect(fallback).not.toHaveBeenCalled();
+    test('標準エラーが適切にログに記録される', () => {
+      const error = new Error('標準エラー');
+      logError(mockLogger, error, 'テスト');
+      expect(mockLogger.error).toHaveBeenCalledWith('エラーが発生しました:', expect.objectContaining({
+        message: '標準エラー',
+        context: 'テスト',
+      }));
+    });
   });
 
-  test('操作が失敗した場合、フォールバックが実行される', async () => {
-    const error = new Error('操作エラー');
-    const operation = jest.fn().mockRejectedValue(error);
-    const fallback = jest.fn().mockReturnValue('フォールバック');
+  describe('handleErrorWithFallback', () => {
+    test('操作が成功した場合は結果を返す', async () => {
+      const operation = jest.fn().mockResolvedValue('成功');
+      const fallback = jest.fn().mockReturnValue('フォールバック');
 
-    const result = await handleErrorWithFallback(
-      mockLogger,
-      operation,
-      fallback,
-      'テスト',
-    );
+      const result = await handleErrorWithFallback(
+        mockLogger,
+        operation,
+        fallback,
+        'テスト'
+      );
 
-    expect(result).toBe('フォールバック');
-    expect(operation).toHaveBeenCalled();
-    expect(fallback).toHaveBeenCalled();
-    expect(mockLogger.error).toHaveBeenCalled();
-  });
+      expect(result).toBe('成功');
+      expect(operation).toHaveBeenCalled();
+      expect(fallback).not.toHaveBeenCalled();
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
 
-  test('Errorでない例外もエラーとして処理される', async () => {
-    const operation = jest.fn().mockRejectedValue('文字列エラー');
-    const fallback = jest.fn().mockReturnValue('フォールバック');
+    test('操作が失敗した場合はフォールバック値を返す', async () => {
+      const error = new Error('テストエラー');
+      const operation = jest.fn().mockRejectedValue(error);
+      const fallback = jest.fn().mockReturnValue('フォールバック');
 
-    const result = await handleErrorWithFallback(
-      mockLogger,
-      operation,
-      fallback,
-    );
+      const result = await handleErrorWithFallback(
+        mockLogger,
+        operation,
+        fallback,
+        'テスト'
+      );
 
-    expect(result).toBe('フォールバック');
-    expect(operation).toHaveBeenCalled();
-    expect(fallback).toHaveBeenCalled();
-    expect(mockLogger.error).toHaveBeenCalled();
+      expect(result).toBe('フォールバック');
+      expect(operation).toHaveBeenCalled();
+      expect(fallback).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
+    });
   });
 });

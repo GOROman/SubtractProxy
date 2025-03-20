@@ -2,7 +2,6 @@
  * アプリケーション全体で使用するエラークラスと関連ユーティリティ
  */
 
-import { Request, Response } from 'express';
 import winston from 'winston';
 
 /**
@@ -11,15 +10,22 @@ import winston from 'winston';
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
+  public readonly code: string;
+  public readonly metadata?: Record<string, unknown>;
 
   constructor(
     message: string,
+    code: string = 'APP_ERROR',
     statusCode = 500,
+    metadata?: Record<string, unknown>,
     isOperational = true,
     stack = '',
   ) {
     super(message);
+    this.name = 'AppError';
+    this.code = code;
     this.statusCode = statusCode;
+    this.metadata = metadata;
     this.isOperational = isOperational;
 
     if (stack) {
@@ -34,8 +40,19 @@ export class AppError extends Error {
  * ネットワーク関連のエラー
  */
 export class NetworkError extends AppError {
-  constructor(message: string, statusCode = 503) {
-    super(`ネットワークエラー: ${message}`, statusCode);
+  constructor(
+    message: string,
+    originalError?: Error,
+    metadata?: Record<string, unknown>
+  ) {
+    super(
+      `ネットワークエラー: ${message}`,
+      'NETWORK_ERROR',
+      503,
+      metadata
+    );
+    this.name = 'NetworkError';
+    this.cause = originalError;
   }
 }
 
@@ -43,8 +60,14 @@ export class NetworkError extends AppError {
  * LLM関連のエラー
  */
 export class LLMError extends AppError {
-  constructor(message: string, statusCode = 500) {
-    super(`LLMエラー: ${message}`, statusCode);
+  constructor(message: string, metadata?: Record<string, unknown>) {
+    super(
+      `LLMエラー: ${message}`,
+      'LLM_ERROR',
+      500,
+      metadata
+    );
+    this.name = 'LLMError';
   }
 }
 
@@ -52,8 +75,14 @@ export class LLMError extends AppError {
  * 設定関連のエラー
  */
 export class ConfigError extends AppError {
-  constructor(message: string, statusCode = 500) {
-    super(`設定エラー: ${message}`, statusCode);
+  constructor(message: string, metadata?: Record<string, unknown>) {
+    super(
+      `設定エラー: ${message}`,
+      'CONFIG_ERROR',
+      500,
+      metadata
+    );
+    this.name = 'ConfigError';
   }
 }
 
@@ -61,78 +90,66 @@ export class ConfigError extends AppError {
  * プロキシ関連のエラー
  */
 export class ProxyError extends AppError {
-  constructor(message: string, statusCode = 502) {
-    super(`プロキシエラー: ${message}`, statusCode);
+  constructor(message: string, metadata?: Record<string, unknown>) {
+    super(
+      `プロキシエラー: ${message}`,
+      'PROXY_ERROR',
+      502,
+      metadata
+    );
+    this.name = 'ProxyError';
   }
 }
 
 /**
  * エラーをログに記録する
  */
-export const logError = (
+export function logError(
   logger: winston.Logger,
   error: Error,
   context?: string,
-): void => {
+): void {
   const errorDetails = {
     message: error.message,
-    name: error.name,
     stack: error.stack,
-    context: context || 'アプリケーション',
+    context,
   };
 
-  if (error instanceof AppError && error.isOperational) {
-    logger.warn(`運用エラー: ${JSON.stringify(errorDetails)}`);
-  } else {
-    logger.error(`予期しないエラー: ${JSON.stringify(errorDetails)}`);
-  }
-};
-
-/**
- * エラーハンドリングミドルウェア
- */
-export const errorHandler = (logger: winston.Logger) => {
-  return (
-    err: Error,
-    _req: Request,
-    res: Response,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _next: () => void,
-  ): void => {
-    let statusCode = 500;
-    let errorMessage = 'サーバー内部エラーが発生しました';
-
-    if (err instanceof AppError) {
-      statusCode = err.statusCode;
-      errorMessage = err.message;
+  if (error instanceof AppError) {
+    errorDetails['statusCode'] = error.statusCode;
+    errorDetails['isOperational'] = error.isOperational;
+    errorDetails['code'] = error.code;
+    if (error.metadata) {
+      errorDetails['metadata'] = error.metadata;
     }
+  }
 
-    logError(logger, err);
-
-    res.status(statusCode).json({
-      status: 'error',
-      message: errorMessage,
-    });
-  };
-};
+  logger.error('エラーが発生しました:', errorDetails);
+}
 
 /**
  * エラーをハンドリングして適切なフォールバック処理を実行する
  */
-export const handleErrorWithFallback = async <T>(
+export async function handleErrorWithFallback<T>(
   logger: winston.Logger,
   operation: () => Promise<T>,
   fallback: () => T,
   context?: string,
-): Promise<T> => {
+): Promise<T> {
   try {
     return await operation();
   } catch (error) {
-    logError(
-      logger,
-      error instanceof Error ? error : new Error(String(error)),
-      context,
-    );
+    logError(logger, error instanceof Error ? error : new Error(String(error)), context);
     return fallback();
   }
-};
+}
+
+/**
+ * エラーがAppErrorのインスタンスかどうかを判定
+ * 
+ * @param error - 判定対象のエラー
+ * @returns AppErrorのインスタンスの場合はtrue
+ */
+export function isAppError(error: unknown): error is AppError {
+  return error instanceof AppError;
+}
