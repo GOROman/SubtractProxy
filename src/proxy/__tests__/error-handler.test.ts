@@ -28,6 +28,10 @@ describe('エラーハンドリングミドルウェア', () => {
       host: 'localhost',
       ignoreRobotsTxt: false,
       timeout: 30000,
+      userAgent: {
+        enabled: false,
+        rotate: false
+      },
       llm: {
         enabled: false,
         type: 'ollama',
@@ -92,11 +96,7 @@ describe('エラーハンドリングミドルウェア', () => {
     expect(mockStatus).toHaveBeenCalledWith(500);
     expect(mockJson).toHaveBeenCalledWith({
       error: {
-<<<<<<< HEAD
-        message: '設定エラー',
-=======
         message: '設定エラー: 設定エラー',
->>>>>>> feature/error-handling-tests
         code: 'CONFIG_ERROR',
         metadata: { config: 'test' },
       },
@@ -110,11 +110,7 @@ describe('エラーハンドリングミドルウェア', () => {
     expect(mockStatus).toHaveBeenCalledWith(502);
     expect(mockJson).toHaveBeenCalledWith({
       error: {
-<<<<<<< HEAD
-        message: 'プロキシエラー',
-=======
         message: 'プロキシエラー: プロキシエラー',
->>>>>>> feature/error-handling-tests
         code: 'PROXY_ERROR',
         metadata: { url: 'http://example.com' },
       },
