@@ -161,9 +161,11 @@ export class ProxyServer {
             );
 
             // オリジナルのヘッダーをコピー
-            for (const [key, value] of Object.entries(proxyRes.headers)) {
-              if (value !== undefined) {
-                res.setHeader(key, value);
+            if (proxyRes.headers) {
+              for (const [key, value] of Object.entries(proxyRes.headers)) {
+                if (value !== undefined) {
+                  res.setHeader(key, value);
+                }
               }
             }
 
