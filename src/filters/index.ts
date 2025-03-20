@@ -2,6 +2,7 @@
  * カスタムフィルタリングルールの実装
  */
 
+// DOM型定義を使用するためにtsconfig.jsonでlibに"DOM"を追加しました
 import { JSDOM } from 'jsdom';
 import { ContentFilter, ProxyContext } from '../proxy/types';
 import * as fs from 'fs';
@@ -66,7 +67,9 @@ export class CustomRuleFilter implements ContentFilter {
         return content;
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error 
+       ? error.message 
+       : String(error);
       this.logger.error(`フィルタリング中にエラーが発生しました: ${errorMessage}`);
       
       // エラーが発生した場合は元のコンテンツを返す
@@ -100,7 +103,8 @@ export class CustomRuleFilter implements ContentFilter {
       if (ruleSet.condition.contentTypePattern && context.headers) {
         const contentType = context.headers['content-type'] ? 
           context.headers['content-type'] as string : '';
-        const contentTypeRegex = new RegExp(ruleSet.condition.contentTypePattern);
+        const pattern = ruleSet.condition.contentTypePattern;
+       const contentTypeRegex = new RegExp(pattern);
         if (!contentTypeRegex.test(contentType)) {
           return false;
         }
@@ -124,7 +128,10 @@ export class CustomRuleFilter implements ContentFilter {
   /**
    * HTMLコンテンツにフィルタリングルールを適用する
    */
-  private filterHtmlContent(content: string, ruleSets: FilterRuleSet[]): string {
+  private filterHtmlContent(
+   content: string, 
+   ruleSets: FilterRuleSet[]
+ ): string {
     try {
       const dom = new JSDOM(content);
       const document = dom.window.document;
@@ -146,7 +153,10 @@ export class CustomRuleFilter implements ContentFilter {
           } else if ('pattern' in rule) {
             // パターンルールの適用
             // HTMLの場合はテキストノードに対して適用
-            this.applyPatternRuleToTextNodes(document, rule as PatternFilterRule);
+            this.applyPatternRuleToTextNodes(
+             document, 
+             rule as PatternFilterRule
+           );
           }
         }
       }
@@ -161,7 +171,10 @@ export class CustomRuleFilter implements ContentFilter {
   /**
    * JSONコンテンツにフィルタリングルールを適用する
    */
-  private filterJsonContent(content: string, ruleSets: FilterRuleSet[]): string {
+  private filterJsonContent(
+   content: string, 
+   ruleSets: FilterRuleSet[]
+ ): string {
     try {
       let jsonObj = JSON.parse(content);
       
@@ -191,7 +204,10 @@ export class CustomRuleFilter implements ContentFilter {
   /**
    * テキストコンテンツにフィルタリングルールを適用する
    */
-  private filterTextContent(content: string, ruleSets: FilterRuleSet[]): string {
+  private filterTextContent(
+   content: string, 
+   ruleSets: FilterRuleSet[]
+ ): string {
     try {
       let result = content;
       
@@ -221,7 +237,10 @@ export class CustomRuleFilter implements ContentFilter {
   /**
    * CSSセレクタルールをDOMに適用する
    */
-  private applySelectorRule(document: Document, rule: SelectorFilterRule): void {
+  private applySelectorRule(
+   document: Document, 
+   rule: SelectorFilterRule
+ ): void {
     try {
       const elements = document.querySelectorAll(rule.selector);
       
@@ -229,7 +248,9 @@ export class CustomRuleFilter implements ContentFilter {
         return;
       }
 
-      this.logger.debug(`セレクタ "${rule.selector}" に一致する要素が ${elements.length} 個見つかりました`);
+      this.logger.debug(
+       `セレクタ "${rule.selector}" に一致する要素が ${elements.length} 個見つかりました`
+     );
 
       elements.forEach((element: Element) => {
         switch (rule.action) {
@@ -256,7 +277,10 @@ export class CustomRuleFilter implements ContentFilter {
   /**
    * パターンルールをテキストノードに適用する
    */
-  private applyPatternRuleToTextNodes(document: Document, rule: PatternFilterRule): void {
+  private applyPatternRuleToTextNodes(
+   document: Document, 
+   rule: PatternFilterRule
+ ): void {
     try {
       const textNodes: Text[] = [];
       const walker = document.createTreeWalker(
@@ -303,7 +327,10 @@ export class CustomRuleFilter implements ContentFilter {
    * パターンルールをJSONオブジェクトに適用する
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private applyPatternRuleToJson(jsonObj: unknown, rule: PatternFilterRule): unknown {
+  private applyPatternRuleToJson(
+   jsonObj: unknown, 
+   rule: PatternFilterRule
+ ): unknown {
     const pattern = new RegExp(rule.pattern, rule.caseSensitive ? 'g' : 'gi');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -329,7 +356,9 @@ export class CustomRuleFilter implements ContentFilter {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processObject = (obj: Record<string, any>): Record<string, unknown> => {
+    const processObject = (
+     obj: Record<string, any>
+   ): Record<string, unknown> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: Record<string, unknown> = {};
       for (const key in obj) {
@@ -436,7 +465,10 @@ export class UrlParamFilter implements ContentFilter {
 /**
  * フィルタリング設定からフィルターを作成する
  */
-export function createCustomFilters(config: FilterConfig, logger: winston.Logger): ContentFilter[] {
+export function createCustomFilters(
+  config: FilterConfig, 
+  logger: winston.Logger
+): ContentFilter[] {
   if (!config.enabled) {
     return [];
   }

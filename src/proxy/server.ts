@@ -80,8 +80,8 @@ export class ProxyServer {
 
       // レスポンスステータスコードのログ記録
       this.logger.debug(
-        `プロキシレスポンス: ${proxyRes.statusCode} ${(req as express.Request).method} ` +
-        `${(req as express.Request).url}`,
+        `プロキシレスポンス: ${proxyRes.statusCode} ` +
+        `${(req as express.Request).method} ${(req as express.Request).url}`,
       );
 
       let body = '';
