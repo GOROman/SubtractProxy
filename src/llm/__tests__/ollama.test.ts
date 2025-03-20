@@ -10,12 +10,12 @@ jest.mock('ollama', () => {
           return {
             message: {
               role: 'assistant',
-              content: 'フィルタリングされたコンテンツ'
-            }
+              content: 'フィルタリングされたコンテンツ',
+            },
           };
-        })
+        }),
       };
-    })
+    }),
   };
 });
 
@@ -53,9 +53,9 @@ describe('OllamaFilter', () => {
         error: jest.fn(),
         info: jest.fn(),
         debug: jest.fn(),
-        warn: jest.fn()
+        warn: jest.fn(),
       } as any,
-      ignoreRobotsTxt: false
+      ignoreRobotsTxt: false,
     };
 
     // モックをリセット
@@ -70,37 +70,37 @@ describe('OllamaFilter', () => {
   test('LLMが無効の場合は元のコンテンツが返される', async () => {
     const disabledConfig = { ...config };
     disabledConfig.llm.enabled = false;
-    
+
     const filter = new OllamaFilter(disabledConfig);
     const result = await filter.filter('テストコンテンツ', context);
-    
+
     expect(result).toBe('テストコンテンツ');
   });
 
   test('フィルターが正しくコンテンツをフィルタリングする', async () => {
     const filter = new OllamaFilter(config);
     const result = await filter.filter('テストコンテンツ', context);
-    
+
     expect(result).toBe('フィルタリングされたコンテンツ');
   });
 
   test('LLMが無効の場合は元のコンテンツが返される', async () => {
     const disabledConfig = { ...config };
     disabledConfig.llm.enabled = false;
-    
+
     const filter = new OllamaFilter(disabledConfig);
     const result = await filter.filter('テストコンテンツ', context);
-    
+
     expect(result).toBe('テストコンテンツ');
   });
 
   test('カスタムベースURLを使用する', async () => {
     const customConfig = { ...config };
     customConfig.llm.baseUrl = 'http://custom-ollama:11434';
-    
+
     const filter = new OllamaFilter(customConfig);
     const result = await filter.filter('テストコンテンツ', context);
-    
+
     expect(result).toBe('フィルタリングされたコンテンツ');
   });
 
@@ -109,13 +109,13 @@ describe('OllamaFilter', () => {
     const { Ollama } = require('ollama');
     Ollama.mockImplementation(() => {
       return {
-        chat: jest.fn().mockRejectedValue(new Error('テストエラー'))
+        chat: jest.fn().mockRejectedValue(new Error('テストエラー')),
       };
     });
-    
+
     const filter = new OllamaFilter(config);
     const result = await filter.filter('テストコンテンツ', context);
-    
+
     // エラー時は元のコンテンツが返される
     expect(result).toBe('テストコンテンツ');
     // ロガーがエラーを記録したことを確認

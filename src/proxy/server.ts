@@ -17,17 +17,17 @@ export class ProxyServer {
     this.setupProxy();
   }
 
-  private setupProxy() {
-    this.proxy.on('proxyReq', (proxyReq, req, res) => {
+  private setupProxy(): void {
+    this.proxy.on('proxyReq', (proxyReq, _req, _res): void => {
       if (this.config.ignoreRobotsTxt) {
         proxyReq.setHeader('User-Agent', 'SubtractProxy/1.0');
       }
     });
 
-    this.proxy.on('proxyRes', async (proxyRes, req, res) => {
+    this.proxy.on('proxyRes', async (proxyRes, req, res): Promise<void> => {
       const context: ProxyContext = {
-        req: req as any,
-        res: res as any,
+        req: req as express.Request,
+        res: res as express.Response,
         logger: this.logger,
         ignoreRobotsTxt: this.config.ignoreRobotsTxt,
       };
@@ -54,7 +54,7 @@ export class ProxyServer {
       });
     });
 
-    this.app.use('/', (req, res) => {
+    this.app.use('/', (req, res): void => {
       this.proxy.web(req, res, {
         target: req.url,
         changeOrigin: true,
@@ -62,13 +62,13 @@ export class ProxyServer {
     });
   }
 
-  public addFilter(filter: ContentFilter) {
+  public addFilter(filter: ContentFilter): void {
     this.filters.push(filter);
     this.logger.info(`フィルター追加: ${filter.name}`);
   }
 
-  public start() {
-    this.app.listen(this.config.port, this.config.host, () => {
+  public start(): void {
+    this.app.listen(this.config.port, this.config.host, (): void => {
       this.logger.info(
         `プロキシサーバーが起動しました - http://${this.config.host}:${this.config.port}`,
       );

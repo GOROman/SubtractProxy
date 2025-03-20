@@ -13,8 +13,8 @@ jest.mock('../../utils/logger', () => ({
     info: jest.fn(),
     error: jest.fn(),
     debug: jest.fn(),
-    warn: jest.fn()
-  })
+    warn: jest.fn(),
+  }),
 }));
 
 describe('プロキシサーバー', () => {
@@ -39,8 +39,8 @@ describe('プロキシサーバー', () => {
         baseUrl: 'http://localhost:11434',
       },
       logging: {
-        level: 'info'
-      }
+        level: 'info',
+      },
     } as Config;
 
     // モックの作成
@@ -49,7 +49,7 @@ describe('プロキシサーバー', () => {
       listen: jest.fn().mockImplementation((port, host, callback) => {
         if (callback) callback();
         return mockApp;
-      })
+      }),
     };
 
     mockProxy = {
@@ -59,9 +59,11 @@ describe('プロキシサーバー', () => {
 
     mockFilter = {
       name: 'TestFilter',
-      filter: jest.fn().mockImplementation((content) => 
-        Promise.resolve('フィルタリングされたコンテンツ')
-      ),
+      filter: jest
+        .fn()
+        .mockImplementation((content) =>
+          Promise.resolve('フィルタリングされたコンテンツ'),
+        ),
     };
 
     // モックの設定
@@ -75,27 +77,27 @@ describe('プロキシサーバー', () => {
 
     // Expressアプリが作成されたか確認
     expect(express).toHaveBeenCalled();
-    
+
     // プロキシが作成されたか確認
     expect(httpProxy.createProxyServer).toHaveBeenCalled();
   });
 
   test('プロキシサーバーがリクエストを正しく処理する', () => {
     const server = new ProxyServer(config);
-    
+
     // app.useが呼ばれたか確認
     expect(mockApp.use).toHaveBeenCalled();
-    
+
     // useのコールバックを取得
     const useCallback = mockApp.use.mock.calls[0][1];
-    
+
     // リクエストとレスポンスをモック
     const req = { url: 'http://example.com' };
     const res = {};
-    
+
     // コールバックを実行
     useCallback(req, res);
-    
+
     // proxy.webが正しく呼ばれたか確認
     expect(mockProxy.web).toHaveBeenCalledWith(req, res, {
       target: req.url,
@@ -106,47 +108,50 @@ describe('プロキシサーバー', () => {
   test('proxyReqイベントが正しく処理される', () => {
     // ignoreRobotsTxtをtrueに設定
     config.ignoreRobotsTxt = true;
-    
+
     const server = new ProxyServer(config);
-    
+
     // proxyReqイベントハンドラを取得
     const proxyReqHandler = mockProxy.on.mock.calls.find(
-      (call: any[]) => call[0] === 'proxyReq'
+      (call: any[]) => call[0] === 'proxyReq',
     )[1];
-    
+
     // リクエストをモック
     const proxyReq = { setHeader: jest.fn() };
     const req = {};
     const res = {};
-    
+
     // ハンドラを実行
     proxyReqHandler(proxyReq, req, res);
-    
+
     // User-Agentヘッダーが設定されたか確認
-    expect(proxyReq.setHeader).toHaveBeenCalledWith('User-Agent', 'SubtractProxy/1.0');
+    expect(proxyReq.setHeader).toHaveBeenCalledWith(
+      'User-Agent',
+      'SubtractProxy/1.0',
+    );
   });
 
   test('proxyResイベントの登録が正しく行われる', () => {
     const server = new ProxyServer(config);
-    
+
     // proxyResイベントが登録されたか確認
     expect(mockProxy.on).toHaveBeenCalledWith('proxyRes', expect.any(Function));
   });
 
   test('フィルターの追加が正しく動作する', () => {
     const server = new ProxyServer(config);
-    
+
     // フィルターを追加
     server.addFilter(mockFilter);
-    
+
     // フィルターが追加されたか確認する方法がないので、
     // フィルターの動作をテストする
-    
+
     // proxyResイベントハンドラを取得
     const proxyResHandler = mockProxy.on.mock.calls.find(
-      (call: any[]) => call[0] === 'proxyRes'
+      (call: any[]) => call[0] === 'proxyRes',
     )[1];
-    
+
     // レスポンスをモック
     const proxyRes = {
       on: jest.fn().mockImplementation((event, callback) => {
@@ -159,28 +164,28 @@ describe('プロキシサーバー', () => {
         return proxyRes;
       }),
     };
-    
+
     const req = {};
     const res = { end: jest.fn() };
-    
+
     // ハンドラを実行
     proxyResHandler(proxyRes, req, res);
-    
+
     // フィルターが呼ばれたか確認
     expect(mockFilter.filter).toHaveBeenCalled();
   });
 
   test('サーバーが正しく起動する', () => {
     const server = new ProxyServer(config);
-    
+
     // サーバーを起動
     server.start();
-    
+
     // listenが正しく呼ばれたか確認
     expect(mockApp.listen).toHaveBeenCalledWith(
       config.port,
       config.host,
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -189,7 +194,7 @@ describe('プロキシサーバー', () => {
 
     // proxyResイベントが設定されたか確認
     expect(mockProxy.on).toHaveBeenCalledWith('proxyRes', expect.any(Function));
-    
+
     // proxyReqイベントが設定されたか確認
     expect(mockProxy.on).toHaveBeenCalledWith('proxyReq', expect.any(Function));
   });
@@ -203,7 +208,7 @@ describe('プロキシサーバー', () => {
     expect(mockApp.listen).toHaveBeenCalledWith(
       config.port,
       config.host,
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 });

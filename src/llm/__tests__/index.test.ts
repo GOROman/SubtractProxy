@@ -6,8 +6,8 @@ jest.mock('../ollama', () => {
   return {
     OllamaFilter: jest.fn().mockImplementation(() => ({
       name: 'OllamaFilter',
-      filter: jest.fn().mockResolvedValue('フィルタリングされたコンテンツ')
-    }))
+      filter: jest.fn().mockResolvedValue('フィルタリングされたコンテンツ'),
+    })),
   };
 });
 
@@ -15,14 +15,15 @@ jest.mock('../openrouter', () => {
   return {
     OpenRouterFilter: jest.fn().mockImplementation(() => ({
       name: 'OpenRouterFilter',
-      filter: jest.fn().mockResolvedValue('フィルタリングされたコンテンツ')
-    }))
+      filter: jest.fn().mockResolvedValue('フィルタリングされたコンテンツ'),
+    })),
   };
 });
 
 // モックを取得
 const { OllamaFilter: mockOllamaFilter } = jest.requireMock('../ollama');
-const { OpenRouterFilter: mockOpenRouterFilter } = jest.requireMock('../openrouter');
+const { OpenRouterFilter: mockOpenRouterFilter } =
+  jest.requireMock('../openrouter');
 
 describe('LLMフィルターファクトリー', () => {
   let config: Config;

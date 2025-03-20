@@ -20,8 +20,8 @@ export class OpenRouterFilter implements ContentFilter {
       apiKey: config.llm.apiKey,
       baseURL: baseURL,
       defaultHeaders: {
-        'HTTP-Referer': 'https://github.com/GOROman/SubtractProxy', // アプリケーションのURL
-        'X-Title': 'SubtractProxy', // アプリケーション名
+        'HTTP-Referer': 'https://github.com/GOROman/SubtractProxy', // URL
+        'X-Title': 'SubtractProxy', // アプリ名
       },
     });
   }
