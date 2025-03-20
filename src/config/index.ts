@@ -10,6 +10,7 @@ const defaultConfig: Config = {
   port: 8080,
   host: '127.0.0.1',
   ignoreRobotsTxt: false,
+  timeout: 30000,
   llm: {
     enabled: true,
     type: 'ollama',
@@ -49,6 +50,9 @@ export const overrideConfigFromEnv = (config: Config): Config => {
 
   const host = getEnv('HOST');
   if (host !== undefined) envConfig.host = host;
+  
+  const timeout = getEnvNumber('TIMEOUT');
+  if (timeout !== undefined) envConfig.timeout = timeout;
 
   const ignoreRobotsTxt = getEnvBoolean('IGNORE_ROBOTS_TXT');
   if (ignoreRobotsTxt !== undefined)
