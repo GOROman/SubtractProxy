@@ -22,6 +22,10 @@ jobs:
     - name: 依存関係のインストール
       run: npm ci
     
+    - name: セキュリティ脆弱性スキャン
+      run: npm audit --production
+      continue-on-error: true
+    
     - name: TypeScript型チェック
       run: npx tsc --noEmit
     
@@ -30,3 +34,14 @@ jobs:
     
     - name: コードのフォーマットチェック
       run: npx prettier --check "src/**/*.ts"
+      
+    - name: エラーハンドリングコードの検証
+      run: |
+        echo "エラーハンドリング関連コードの検証"
+        # エラークラスが適切に定義されているか確認
+        grep -r "extends AppError" src/ || echo "警告: AppErrorを継承したカスタムエラークラスが見つかりません"
+        # エラーハンドリングミドルウェアが存在するか確認
+        grep -r "errorHandler" src/ || echo "警告: errorHandlerミドルウェアが見つかりません"
+        # try-catchブロックの使用状況を確認
+        echo "try-catchブロックの使用状況:"
+        grep -r "try {" --include="*.ts" src/ | wc -l

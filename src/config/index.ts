@@ -96,10 +96,14 @@ export const overrideConfigFromEnv = (config: Config): Config => {
 
   // フィルタリング設定
   const filteringEnabled = getEnvBoolean('FILTERING_ENABLED');
-  if (filteringEnabled !== undefined) envConfig.filtering.enabled = filteringEnabled;
+  if (filteringEnabled !== undefined) {
+    envConfig.filtering.enabled = filteringEnabled;
+  }
 
   const filteringConfigPath = getEnv('FILTERING_CONFIG_PATH');
-  if (filteringConfigPath !== undefined) envConfig.filtering.configPath = filteringConfigPath;
+  if (filteringConfigPath !== undefined) {
+    envConfig.filtering.configPath = filteringConfigPath;
+  }
 
   return envConfig;
 };

@@ -12,10 +12,9 @@ import {
   PatternFilterRule, 
   SelectorFilterRule, 
   ParamFilterRule,
-  ContentTypeFilterRule,
   FilterActionType
 } from './types';
-import { ConfigError, ProxyError } from '../utils/errors';
+import { ConfigError } from '../utils/errors';
 import winston from 'winston';
 import { URL } from 'url';
 
@@ -350,14 +349,13 @@ export class CustomRuleFilter implements ContentFilter {
       } else if (Array.isArray(value)) {
         return value.map(item => processValue(item));
       } else if (value !== null && typeof value === 'object') {
-        return processObject(value);
+        return processObject(value as Record<string, unknown>);
       }
       return value;
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const processObject = (
-     obj: Record<string, any>
+     obj: Record<string, unknown>
    ): Record<string, unknown> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: Record<string, unknown> = {};
