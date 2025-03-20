@@ -27,7 +27,10 @@ describe('エラーハンドリングミドルウェア', () => {
       port: 8080,
       host: 'localhost',
       ignoreRobotsTxt: false,
+<<<<<<< HEAD
+=======
       timeout: 30000,
+>>>>>>> feature/error-handling-tests
       llm: {
         enabled: false,
         type: 'ollama',
@@ -36,15 +39,22 @@ describe('エラーハンドリングミドルウェア', () => {
       logging: {
         level: 'error',
       },
+<<<<<<< HEAD
+=======
       filtering: {
         enabled: false,
         configPath: undefined,
       },
+>>>>>>> feature/error-handling-tests
     });
   });
 
   test('AppErrorを適切に処理する', () => {
+<<<<<<< HEAD
+    const error = new AppError('アプリケーションエラー', 'APP_ERROR', { detail: 'テスト' });
+=======
     const error = new AppError('アプリケーションエラー', 'APP_ERROR', 500, { detail: 'テスト' });
+>>>>>>> feature/error-handling-tests
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockStatus).toHaveBeenCalledWith(500);
@@ -65,7 +75,11 @@ describe('エラーハンドリングミドルウェア', () => {
     expect(mockStatus).toHaveBeenCalledWith(503);
     expect(mockJson).toHaveBeenCalledWith({
       error: {
+<<<<<<< HEAD
+        message: 'ネットワークエラー',
+=======
         message: 'ネットワークエラー: ネットワークエラー',
+>>>>>>> feature/error-handling-tests
         code: 'NETWORK_ERROR',
       },
     });
@@ -78,7 +92,11 @@ describe('エラーハンドリングミドルウェア', () => {
     expect(mockStatus).toHaveBeenCalledWith(500);
     expect(mockJson).toHaveBeenCalledWith({
       error: {
+<<<<<<< HEAD
+        message: 'LLMエラー',
+=======
         message: 'LLMエラー: LLMエラー',
+>>>>>>> feature/error-handling-tests
         code: 'LLM_ERROR',
         metadata: { model: 'test-model' },
       },
@@ -92,7 +110,11 @@ describe('エラーハンドリングミドルウェア', () => {
     expect(mockStatus).toHaveBeenCalledWith(500);
     expect(mockJson).toHaveBeenCalledWith({
       error: {
+<<<<<<< HEAD
+        message: '設定エラー',
+=======
         message: '設定エラー: 設定エラー',
+>>>>>>> feature/error-handling-tests
         code: 'CONFIG_ERROR',
         metadata: { config: 'test' },
       },
@@ -106,7 +128,11 @@ describe('エラーハンドリングミドルウェア', () => {
     expect(mockStatus).toHaveBeenCalledWith(502);
     expect(mockJson).toHaveBeenCalledWith({
       error: {
+<<<<<<< HEAD
+        message: 'プロキシエラー',
+=======
         message: 'プロキシエラー: プロキシエラー',
+>>>>>>> feature/error-handling-tests
         code: 'PROXY_ERROR',
         metadata: { url: 'http://example.com' },
       },

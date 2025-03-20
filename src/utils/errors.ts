@@ -19,7 +19,7 @@ export class AppError extends Error {
     statusCode = 500,
     metadata?: Record<string, unknown>,
     isOperational = true,
-    stack = '',
+    stack = ''
   ) {
     super(message);
     this.name = 'AppError';
