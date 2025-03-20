@@ -100,7 +100,7 @@ describe('プロキシサーバー', () => {
     const lastCall = mockApp.use.mock.calls[mockApp.use.mock.calls.length - 1];
     const path = lastCall[0];
     const middleware = lastCall[1];
-    
+
     // ミドルウェアを実行
     middleware(req, res, next);
 
@@ -200,8 +200,14 @@ describe('プロキシサーバー', () => {
     );
 
     // プロセスイベントハンドラーが登録されたか確認
-    expect(process.on).toHaveBeenCalledWith('uncaughtException', expect.any(Function));
-    expect(process.on).toHaveBeenCalledWith('unhandledRejection', expect.any(Function));
+    expect(process.on).toHaveBeenCalledWith(
+      'uncaughtException',
+      expect.any(Function),
+    );
+    expect(process.on).toHaveBeenCalledWith(
+      'unhandledRejection',
+      expect.any(Function),
+    );
     expect(process.on).toHaveBeenCalledWith('SIGTERM', expect.any(Function));
     expect(process.on).toHaveBeenCalledWith('SIGINT', expect.any(Function));
 
@@ -237,7 +243,7 @@ describe('プロキシサーバー', () => {
 
     // プロキシのエラーハンドラーを取得
     const errorHandler = mockProxy.on.mock.calls.find(
-      (call: any[]) => call[0] === 'error'
+      (call: any[]) => call[0] === 'error',
     )[1];
 
     // リクエストとレスポンスをモック
@@ -245,29 +251,31 @@ describe('プロキシサーバー', () => {
     const res = {
       headersSent: false,
       writeHead: jest.fn(),
-      end: jest.fn()
+      end: jest.fn(),
     };
 
     // エラーハンドラーを実行
     errorHandler(new Error('プロキシエラー'), req, res);
 
     // レスポンスが正しく設定されたか確認
-    expect(res.writeHead).toHaveBeenCalledWith(500, { 'Content-Type': 'application/json' });
+    expect(res.writeHead).toHaveBeenCalledWith(500, {
+      'Content-Type': 'application/json',
+    });
     expect(res.end).toHaveBeenCalled();
   });
 
   test('サーバーが正しく停止される', () => {
     // サーバーを作成
     const server = new ProxyServer(config);
-    
+
     // サーバーを起動
     server.start();
-    
+
     // サーバーの停止をモック
     mockApp.close = jest.fn().mockImplementation((callback) => {
       if (callback) callback();
     });
-    
+
     // サーバーを停止
     server.stop();
   });
@@ -284,7 +292,7 @@ describe('プロキシサーバー', () => {
     // 最後のミドルウェアを取得して実行
     const lastCall = mockApp.use.mock.calls[mockApp.use.mock.calls.length - 1];
     const middleware = lastCall[1];
-    
+
     // ミドルウェアを実行
     middleware(req, res, next);
 
@@ -307,15 +315,15 @@ describe('プロキシサーバー', () => {
     // 最後のミドルウェアを取得
     const lastCall = mockApp.use.mock.calls[mockApp.use.mock.calls.length - 1];
     const middleware = lastCall[1];
-    
+
     // proxy.webがエラーを投げるように設定
     mockProxy.web.mockImplementationOnce(() => {
       throw new Error('プロキシエラー');
     });
-    
+
     // ミドルウェアを実行
     middleware(req, res, next);
-    
+
     // nextがエラーとともに呼ばれたか確認
     expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
@@ -328,7 +336,7 @@ describe('プロキシサーバー', () => {
 
     // サーバーのエラーハンドラーをシミュレート
     const serverErrorHandler = mockApp.on.mock.calls.find(
-      (call: any[]) => call[0] === 'error'
+      (call: any[]) => call[0] === 'error',
     )?.[1];
 
     // EADDRINUSEエラーをシミュレート
@@ -357,9 +365,11 @@ describe('プロキシサーバー', () => {
 
     // オリジナルのsetTimeoutを保存
     const originalSetTimeout = global.setTimeout;
-    (global.setTimeout as any) = jest.fn().mockImplementation((callback, ms) => {
-      return { unref: jest.fn() };
-    });
+    (global.setTimeout as any) = jest
+      .fn()
+      .mockImplementation((callback, ms) => {
+        return { unref: jest.fn() };
+      });
 
     // サーバーを作成して起動
     const server = new ProxyServer(config);
@@ -367,7 +377,7 @@ describe('プロキシサーバー', () => {
 
     // SIGTERMハンドラーを取得
     const sigtermHandler = processOnMock.mock.calls.find(
-      (call: any[]) => call[0] === 'SIGTERM'
+      (call: any[]) => call[0] === 'SIGTERM',
     )?.[1];
 
     // サーバーの停止をモック
@@ -402,10 +412,12 @@ describe('プロキシサーバー', () => {
     // オリジナルのsetTimeoutを保存
     const originalSetTimeout = global.setTimeout;
     let timeoutCallback: Function | null = null;
-    (global.setTimeout as any) = jest.fn().mockImplementation((callback, ms) => {
-      timeoutCallback = callback as Function;
-      return { unref: jest.fn() };
-    });
+    (global.setTimeout as any) = jest
+      .fn()
+      .mockImplementation((callback, ms) => {
+        timeoutCallback = callback as Function;
+        return { unref: jest.fn() };
+      });
 
     // サーバーを作成して起動
     const server = new ProxyServer(config);
@@ -413,7 +425,7 @@ describe('プロキシサーバー', () => {
 
     // SIGTERMハンドラーを取得
     const sigtermHandler = processOnMock.mock.calls.find(
-      (call: any[]) => call[0] === 'SIGTERM'
+      (call: any[]) => call[0] === 'SIGTERM',
     )?.[1];
 
     // サーバーの停止をモックし、コールバックを呼ばないように設定
@@ -451,10 +463,12 @@ describe('プロキシサーバー', () => {
     // オリジナルのsetTimeoutを保存
     const originalSetTimeout = global.setTimeout;
     let timeoutCallback: Function | null = null;
-    (global.setTimeout as any) = jest.fn().mockImplementation((callback, ms) => {
-      timeoutCallback = callback as Function;
-      return { unref: jest.fn() };
-    });
+    (global.setTimeout as any) = jest
+      .fn()
+      .mockImplementation((callback, ms) => {
+        timeoutCallback = callback as Function;
+        return { unref: jest.fn() };
+      });
 
     // サーバーを作成して起動
     const server = new ProxyServer(config);
@@ -462,7 +476,7 @@ describe('プロキシサーバー', () => {
 
     // uncaughtExceptionハンドラーを取得
     const uncaughtExceptionHandler = processOnMock.mock.calls.find(
-      (call: any[]) => call[0] === 'uncaughtException'
+      (call: any[]) => call[0] === 'uncaughtException',
     )?.[1];
 
     // ハンドラーを実行
@@ -496,7 +510,7 @@ describe('プロキシサーバー', () => {
 
     // unhandledRejectionハンドラーを取得
     const unhandledRejectionHandler = processOnMock.mock.calls.find(
-      (call: any[]) => call[0] === 'unhandledRejection'
+      (call: any[]) => call[0] === 'unhandledRejection',
     )?.[1];
 
     // ハンドラーを実行

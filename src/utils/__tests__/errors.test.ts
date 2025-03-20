@@ -116,13 +116,8 @@ describe('errorHandlerのテスト', () => {
   test('AppErrorが適切に処理される', () => {
     const error = new AppError('カスタムエラー', 400);
     const handler = errorHandler(mockLogger);
-    
-    handler(
-      error,
-      mockRequest as Request,
-      mockResponse as Response,
-      mockNext,
-    );
+
+    handler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
@@ -135,13 +130,8 @@ describe('errorHandlerのテスト', () => {
   test('一般的なエラーが500として処理される', () => {
     const error = new Error('一般的なエラー');
     const handler = errorHandler(mockLogger);
-    
-    handler(
-      error,
-      mockRequest as Request,
-      mockResponse as Response,
-      mockNext,
-    );
+
+    handler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
     expect(mockResponse.status).toHaveBeenCalledWith(500);
     expect(mockResponse.json).toHaveBeenCalledWith({
