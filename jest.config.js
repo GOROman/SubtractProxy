@@ -17,5 +17,11 @@ module.exports = {
       lines: 80,
       statements: 80
     }
+  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!ollama).+\.js$'
+  ],
+  moduleNameMapper: {
+    '^ollama$': '<rootDir>/src/llm/__mocks__/ollama.ts'
   }
 };
