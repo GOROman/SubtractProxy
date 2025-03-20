@@ -5,7 +5,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  code-quality:
+    name: コード品質チェック
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
