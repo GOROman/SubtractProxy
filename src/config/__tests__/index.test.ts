@@ -44,6 +44,7 @@ describe('設定管理機能のテスト', () => {
       port: 8080,
       host: '127.0.0.1',
       ignoreRobotsTxt: false,
+      timeout: 30000,
       llm: {
         enabled: true,
         type: 'ollama',
@@ -51,6 +52,10 @@ describe('設定管理機能のテスト', () => {
       },
       logging: {
         level: 'info',
+      },
+      filtering: {
+        enabled: false,
+        configPath: 'config.filter.json',
       },
     };
 

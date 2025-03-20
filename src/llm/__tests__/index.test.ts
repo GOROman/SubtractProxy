@@ -34,6 +34,7 @@ describe('LLMフィルターファクトリー', () => {
       port: 8080,
       host: '127.0.0.1',
       ignoreRobotsTxt: false,
+      timeout: 30000,
       llm: {
         enabled: true,
         type: 'ollama',
@@ -44,6 +45,10 @@ describe('LLMフィルターファクトリー', () => {
       logging: {
         level: 'info',
         file: 'proxy.log',
+      },
+      filtering: {
+        enabled: false,
+        configPath: 'config.filter.json',
       },
     };
 

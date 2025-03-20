@@ -10,6 +10,7 @@ const defaultConfig: Config = {
   port: 8080,
   host: '127.0.0.1',
   ignoreRobotsTxt: false,
+  timeout: 30000,
   llm: {
     enabled: true,
     type: 'ollama',
@@ -17,6 +18,10 @@ const defaultConfig: Config = {
   },
   logging: {
     level: 'info',
+  },
+  filtering: {
+    enabled: false,
+    configPath: 'config.filter.json',
   },
 };
 
@@ -49,6 +54,9 @@ export const overrideConfigFromEnv = (config: Config): Config => {
 
   const host = getEnv('HOST');
   if (host !== undefined) envConfig.host = host;
+
+  const timeout = getEnvNumber('TIMEOUT');
+  if (timeout !== undefined) envConfig.timeout = timeout;
 
   const ignoreRobotsTxt = getEnvBoolean('IGNORE_ROBOTS_TXT');
   if (ignoreRobotsTxt !== undefined)
@@ -85,6 +93,17 @@ export const overrideConfigFromEnv = (config: Config): Config => {
 
   const loggingFile = getEnv('LOGGING_FILE');
   if (loggingFile !== undefined) envConfig.logging.file = loggingFile;
+
+  // フィルタリング設定
+  const filteringEnabled = getEnvBoolean('FILTERING_ENABLED');
+  if (filteringEnabled !== undefined) {
+    envConfig.filtering.enabled = filteringEnabled;
+  }
+
+  const filteringConfigPath = getEnv('FILTERING_CONFIG_PATH');
+  if (filteringConfigPath !== undefined) {
+    envConfig.filtering.configPath = filteringConfigPath;
+  }
 
   return envConfig;
 };

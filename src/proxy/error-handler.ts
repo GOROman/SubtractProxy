@@ -17,6 +17,7 @@ const logger = createLogger({
   port: 8080,
   host: 'localhost',
   ignoreRobotsTxt: false,
+  timeout: 30000,
   llm: {
     enabled: false,
     type: 'ollama',
@@ -24,6 +25,10 @@ const logger = createLogger({
   },
   logging: {
     level: 'error',
+  },
+  filtering: {
+    enabled: false,
+    configPath: undefined,
   },
 });
 
