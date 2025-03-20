@@ -11,9 +11,11 @@ describe('設定管理機能のテスト', () => {
   // テスト前の準備
   beforeEach(() => {
     jest.resetAllMocks();
-    
+
     // デフォルトのモック実装
-    jest.spyOn(fileUtils, 'resolveProjectPath').mockImplementation((path) => `/project/${path}`);
+    jest
+      .spyOn(fileUtils, 'resolveProjectPath')
+      .mockImplementation((path) => `/project/${path}`);
     jest.spyOn(envUtils, 'getEnv').mockImplementation(() => undefined);
     jest.spyOn(envUtils, 'getEnvNumber').mockImplementation(() => undefined);
     jest.spyOn(envUtils, 'getEnvBoolean').mockImplementation(() => undefined);
@@ -31,7 +33,7 @@ describe('設定管理機能のテスト', () => {
         if (key === 'CONFIG_PATH') return '/custom/path/config.json';
         return undefined;
       });
-      
+
       const path = getConfigFilePath();
       expect(path).toBe('/custom/path/config.json');
     });
@@ -62,17 +64,17 @@ describe('設定管理機能のテスト', () => {
         if (key === 'PORT') return 3000;
         return undefined;
       });
-      
+
       jest.spyOn(envUtils, 'getEnv').mockImplementation((key) => {
         if (key === 'HOST') return '0.0.0.0';
         return undefined;
       });
-      
+
       jest.spyOn(envUtils, 'getEnvBoolean').mockImplementation((key) => {
         if (key === 'IGNORE_ROBOTS_TXT') return true;
         return undefined;
       });
-      
+
       const config = overrideConfigFromEnv(baseConfig);
       expect(config.port).toBe(3000);
       expect(config.host).toBe('0.0.0.0');
@@ -84,7 +86,7 @@ describe('設定管理機能のテスト', () => {
         if (key === 'LLM_ENABLED') return false;
         return undefined;
       });
-      
+
       jest.spyOn(envUtils, 'getEnv').mockImplementation((key) => {
         if (key === 'LLM_TYPE') return 'openrouter';
         if (key === 'LLM_MODEL') return 'gpt-4';
@@ -92,7 +94,7 @@ describe('設定管理機能のテスト', () => {
         if (key === 'LLM_BASE_URL') return 'https://api.example.com';
         return undefined;
       });
-      
+
       const config = overrideConfigFromEnv(baseConfig);
       expect(config.llm.enabled).toBe(false);
       expect(config.llm.type).toBe('openrouter');
@@ -107,7 +109,7 @@ describe('設定管理機能のテスト', () => {
         if (key === 'LOGGING_FILE') return 'custom.log';
         return undefined;
       });
-      
+
       const config = overrideConfigFromEnv(baseConfig);
       expect(config.logging.level).toBe('debug');
       expect(config.logging.file).toBe('custom.log');
@@ -117,7 +119,7 @@ describe('設定管理機能のテスト', () => {
   describe('loadConfig', () => {
     test('設定ファイルが存在しない場合、デフォルト設定を返す', () => {
       jest.spyOn(fileUtils, 'readJsonFile').mockReturnValue(null);
-      
+
       const config = loadConfig();
       expect(config.port).toBe(8080);
       expect(config.host).toBe('127.0.0.1');
@@ -133,7 +135,7 @@ describe('設定管理機能のテスト', () => {
           model: 'gpt-4',
         },
       });
-      
+
       const config = loadConfig();
       expect(config.port).toBe(3000);
       expect(config.host).toBe('0.0.0.0');
@@ -149,12 +151,12 @@ describe('設定管理機能のテスト', () => {
         port: 3000,
         host: '0.0.0.0',
       });
-      
+
       jest.spyOn(envUtils, 'getEnvNumber').mockImplementation((key) => {
         if (key === 'PORT') return 4000;
         return undefined;
       });
-      
+
       const config = loadConfig();
       expect(config.port).toBe(4000); // 環境変数の値
       expect(config.host).toBe('0.0.0.0'); // ファイルの値
@@ -165,10 +167,10 @@ describe('設定管理機能のテスト', () => {
       jest.spyOn(fileUtils, 'readJsonFile').mockReturnValue({
         port: 'invalid-port', // 数値であるべき
       } as any);
-      
+
       // コンソールエラーをモック
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const config = loadConfig();
       expect(config.port).toBe(8080); // デフォルト値
       expect(consoleSpy).toHaveBeenCalled();

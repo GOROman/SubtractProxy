@@ -24,6 +24,7 @@
     "express": "^4.18.3",
     "http-proxy": "^1.18.1",
     "ollama": "^0.4.9",
+    "openai": "^4.88.0",
     "typescript": "^5.4.2",
     "winston": "^3.12.0",
     "zod": "^3.22.4"

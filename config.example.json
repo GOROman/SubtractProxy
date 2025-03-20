@@ -6,7 +6,8 @@
     "enabled": true,
     "type": "ollama",
     "model": "gemma",
-    "baseUrl": "http://localhost:11434"
+    "baseUrl": "http://localhost:11434",
+    "apiKey": ""
   },
   "logging": {
     "level": "info",

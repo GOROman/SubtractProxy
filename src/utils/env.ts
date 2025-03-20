@@ -4,7 +4,10 @@
  * @param defaultValue デフォルト値
  * @returns 環境変数の値またはデフォルト値
  */
-export const getEnv = (key: string, defaultValue?: string): string | undefined => {
+export const getEnv = (
+  key: string,
+  defaultValue?: string,
+): string | undefined => {
   const value = process.env[key];
   return value !== undefined ? value : defaultValue;
 };
@@ -15,12 +18,15 @@ export const getEnv = (key: string, defaultValue?: string): string | undefined =
  * @param defaultValue デフォルト値
  * @returns 環境変数の数値またはデフォルト値
  */
-export const getEnvNumber = (key: string, defaultValue?: number): number | undefined => {
+export const getEnvNumber = (
+  key: string,
+  defaultValue?: number,
+): number | undefined => {
   const value = process.env[key];
   if (value === undefined) {
     return defaultValue;
   }
-  
+
   const numValue = Number(value);
   return !isNaN(numValue) ? numValue : defaultValue;
 };
@@ -31,11 +37,14 @@ export const getEnvNumber = (key: string, defaultValue?: number): number | undef
  * @param defaultValue デフォルト値
  * @returns 環境変数のブール値またはデフォルト値
  */
-export const getEnvBoolean = (key: string, defaultValue?: boolean): boolean | undefined => {
+export const getEnvBoolean = (
+  key: string,
+  defaultValue?: boolean,
+): boolean | undefined => {
   const value = process.env[key];
   if (value === undefined) {
     return defaultValue;
   }
-  
+
   return value.toLowerCase() === 'true';
 };

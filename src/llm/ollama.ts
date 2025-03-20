@@ -8,13 +8,14 @@ export class OllamaFilter implements ContentFilter {
 
   constructor(private config: Config) {
     // LLM設定からホスト情報を取得
-    const host = config.llm.baseUrl !== undefined 
-      ? config.llm.baseUrl 
-      : 'http://localhost:11434';
-      
+    const host =
+      config.llm.baseUrl !== undefined
+        ? config.llm.baseUrl
+        : 'http://localhost:11434';
+
     // Ollamaクラスのコンストラクタには host プロパティを渡す
     this.ollama = new Ollama({
-      host
+      host,
     });
   }
 
@@ -29,7 +30,8 @@ export class OllamaFilter implements ContentFilter {
         messages: [
           {
             role: 'system',
-            content: 'あなたはWebコンテンツフィルターです。以下のコンテンツを分析し、不要な情報を削除または要約してください。',
+            content:
+              'あなたはWebコンテンツフィルターです。以下のコンテンツを分析し、不要な情報を削除または要約してください。',
           },
           {
             role: 'user',
@@ -40,7 +42,10 @@ export class OllamaFilter implements ContentFilter {
 
       return response.message.content;
     } catch (error) {
-      context.logger.error('Ollamaフィルタリング中にエラーが発生しました:', error);
+      context.logger.error(
+        'Ollamaフィルタリング中にエラーが発生しました:',
+        error,
+      );
       return content;
     }
   }

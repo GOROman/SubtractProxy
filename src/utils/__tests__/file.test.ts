@@ -13,7 +13,7 @@ describe('ファイルユーティリティのテスト', () => {
   describe('fileExists', () => {
     test('ファイルが存在する場合、trueを返す', () => {
       jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      
+
       const result = fileExists('/path/to/file.json');
       expect(result).toBe(true);
       expect(fs.existsSync).toHaveBeenCalledWith('/path/to/file.json');
@@ -21,7 +21,7 @@ describe('ファイルユーティリティのテスト', () => {
 
     test('ファイルが存在しない場合、falseを返す', () => {
       jest.spyOn(fs, 'existsSync').mockReturnValue(false);
-      
+
       const result = fileExists('/path/to/nonexistent.json');
       expect(result).toBe(false);
     });
@@ -30,7 +30,7 @@ describe('ファイルユーティリティのテスト', () => {
       jest.spyOn(fs, 'existsSync').mockImplementation(() => {
         throw new Error('アクセス拒否');
       });
-      
+
       const result = fileExists('/path/to/file.json');
       expect(result).toBe(false);
     });
@@ -41,15 +41,18 @@ describe('ファイルユーティリティのテスト', () => {
       const mockData = { key: 'value' };
       jest.spyOn(fs, 'existsSync').mockReturnValue(true);
       jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(mockData));
-      
+
       const result = readJsonFile('/path/to/file.json');
       expect(result).toEqual(mockData);
-      expect(fs.readFileSync).toHaveBeenCalledWith('/path/to/file.json', 'utf-8');
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        '/path/to/file.json',
+        'utf-8',
+      );
     });
 
     test('ファイルが存在しない場合、nullを返す', () => {
       jest.spyOn(fs, 'existsSync').mockReturnValue(false);
-      
+
       const result = readJsonFile('/path/to/nonexistent.json');
       expect(result).toBeNull();
       expect(fs.readFileSync).not.toHaveBeenCalled();
@@ -60,14 +63,14 @@ describe('ファイルユーティリティのテスト', () => {
       jest.spyOn(fs, 'readFileSync').mockImplementation(() => {
         throw new Error('読み込みエラー');
       });
-      
+
       expect(() => readJsonFile('/path/to/file.json')).toThrow();
     });
 
     test('JSONパースでエラーが発生した場合、例外をスローする', () => {
       jest.spyOn(fs, 'existsSync').mockReturnValue(true);
       jest.spyOn(fs, 'readFileSync').mockReturnValue('不正なJSON');
-      
+
       expect(() => readJsonFile('/path/to/file.json')).toThrow();
     });
   });
@@ -80,9 +83,9 @@ describe('ファイルユーティリティのテスト', () => {
         // 単純化のため、引数を連結して返す
         return args.join('/');
       });
-      
+
       const result = resolveProjectPath('config/file.json');
-      
+
       // 最終的な結果のみを検証
       expect(result).toContain('config/file.json');
     });
