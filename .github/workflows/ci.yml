@@ -30,8 +30,8 @@ jobs:
     - name: コードのリント
       run: npm run lint
     
-    - name: コードのフォーマット
-      run: npm run format
+    - name: コードのフォーマットチェック
+      run: npm run format:check
       
     - name: ビルド
       run: npm run build
