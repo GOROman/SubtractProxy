@@ -1,43 +1,58 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  code-quality:
+    name: コード品質チェック
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
     - uses: actions/checkout@v4
     
-    - name: Node.js ${{ matrix.node-version }}のセットアップ
+    - name: Node.jsのセットアップ
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 20.x
         cache: 'npm'
     
     - name: 依存関係のインストール
-      run: npm ci
+      run: npm install
+    
+    - name: セキュリティ脆弱性スキャン
+      run: npm audit --production
+    
+    - name: TypeScript型チェック
+      run: npm run type-check
     
     - name: コードのリント
       run: npm run lint
+    
+    - name: コードのフォーマットチェック
+      run: npm run format:check
       
     - name: ビルド
       run: npm run build
       
     - name: テスト実行
-      run: npm test -- --passWithNoTests
+      run: npm test -- --coverage --coverageThreshold='{"global":{"statements":50,"branches":50,"functions":50,"lines":50}}'
+      
+    - name: エラーログフォーマット検証
+      run: npm run test:error-logs
       
     - name: テストカバレッジの保存
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report-${{ matrix.node-version }}
+        name: coverage-report
         path: coverage/
         retention-days: 7
+      
+    - name: カバレッジレポートの表示
+      run: |
+        echo "テストカバレッジの概要:"
+        cat coverage/coverage-summary.json | jq '.total'
+        
+        # エラーハンドリング関連ファイルのカバレッジ確認
+        echo "エラーハンドリング関連ファイルのカバレッジ:"
+        cat coverage/coverage-summary.json | jq '.["/Users/goroman/Work/github/SubtractProxy/src/utils/errors.ts"]'

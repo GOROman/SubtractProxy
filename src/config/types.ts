@@ -16,6 +16,15 @@ export const ConfigSchema = z.object({
     level: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
     file: z.string().optional(),
   }),
+  filtering: z
+    .object({
+      enabled: z.boolean().default(false),
+      configPath: z.string().optional(),
+    })
+    .optional()
+    .default({
+      enabled: false,
+    }),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

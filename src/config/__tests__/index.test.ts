@@ -53,6 +53,10 @@ describe('設定管理機能のテスト', () => {
       logging: {
         level: 'info',
       },
+      filtering: {
+        enabled: false,
+        configPath: 'config.filter.json',
+      },
     };
 
     test('環境変数が設定されていない場合、元の設定を返す', () => {

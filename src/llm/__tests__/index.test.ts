@@ -46,6 +46,10 @@ describe('LLMフィルターファクトリー', () => {
         level: 'info',
         file: 'proxy.log',
       },
+      filtering: {
+        enabled: false,
+        configPath: 'config.filter.json',
+      },
     };
 
     // モックをリセット
