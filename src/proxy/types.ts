@@ -10,7 +10,13 @@ export interface ProxyContext {
   originalUrl?: string;
   statusCode?: number;
   headers?: IncomingHttpHeaders;
-  userAgent?: {
+  userAgent?: string;
+  // プロンプト変数として使用するプロパティ
+  url?: string;
+  method?: string;
+  contentType?: string;
+  // 元のuserAgent設定
+  userAgentConfig?: {
     enabled: boolean;
     value?: string;
     rotate: boolean;
