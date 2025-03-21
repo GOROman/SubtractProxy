@@ -114,7 +114,7 @@ export class FilterService {
       case MatchType.CSS_SELECTOR:
         return this.applyCssSelectorRule(rule, content);
       default:
-        throw new AppError('未対応のマッチングタイプです', {
+        throw new AppError('未対応のマッチングタイプです', 'UNSUPPORTED_MATCH_TYPE', 400, {
           matchType: rule.matchType,
         });
     }
@@ -128,7 +128,7 @@ export class FilterService {
       const regex = new RegExp(rule.pattern, 'g');
       return content.replace(regex, '');
     } catch (error) {
-      throw new AppError('正規表現ルールの適用に失敗しました', {
+      throw new AppError('正規表現ルールの適用に失敗しました', 'REGEX_RULE_FAILED', 500, {
         ruleId: rule.id,
         pattern: rule.pattern,
         error,
@@ -174,7 +174,7 @@ export class FilterService {
       try {
         new RegExp(rule.pattern);
       } catch (error) {
-        throw new AppError('無効な正規表現パターンです', {
+        throw new AppError('無効な正規表現パターンです', 'INVALID_REGEX_PATTERN', 400, {
           pattern: rule.pattern,
           error,
         });
