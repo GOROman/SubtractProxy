@@ -4,6 +4,31 @@ import { AppError } from '../utils/errors';
 import * as cheerio from 'cheerio';
 import { MatchType } from '../types/filtering';
 
+type WriteCallback = (error?: Error | null) => void;
+type EndCallback = () => void;
+
+type WriteFunction = {
+  (chunk: any, callback?: WriteCallback): boolean;
+  (chunk: any, encoding: BufferEncoding, callback?: WriteCallback): boolean;
+}
+
+type EndFunction = {
+  (cb?: EndCallback): void;
+  (chunk: any, cb?: EndCallback): void;
+  (chunk: any, encoding: BufferEncoding, cb?: EndCallback): void;
+}
+
+type ResponseWrite = {
+  (chunk: any, callback?: WriteCallback): boolean;
+  (chunk: any, encoding: BufferEncoding, callback?: WriteCallback): boolean;
+}
+
+type ResponseEnd = {
+  (cb?: EndCallback): Response;
+  (chunk: any, cb?: EndCallback): Response;
+  (chunk: any, encoding: BufferEncoding, cb?: EndCallback): Response;
+}
+
 /**
  * フィルタリングミドルウェア
  * レスポンスのコンテンツに対してフィルタリングルールを適用する
@@ -14,57 +39,85 @@ export class FilterMiddleware {
   /**
    * フィルタリングミドルウェアを生成する
    */
-  public createMiddleware() {
-    return async (req: Request, res: Response, next: NextFunction) => {
-      // オリジナルのend関数を保存
-      const originalEnd = res.end;
+  public createMiddleware(): (req: Request, res: Response, next: NextFunction) => void {
+    return (req: Request, res: Response, next: NextFunction): void => {
+      // オリジナルの関数を保存
+      const originalWrite = res.write.bind(res) as WriteFunction;
+      const originalEnd = res.end.bind(res) as EndFunction;
       let buffer = Buffer.from('');
 
       // レスポンスデータを収集
-      res.write = (...args: any[]): boolean => {
-        if (args[0]) {
-          const chunk = Buffer.isBuffer(args[0])
-            ? args[0]
-            : Buffer.from(args[0]);
-          buffer = Buffer.concat([buffer, chunk]);
+      const newWrite: ResponseWrite = (chunk: any, encodingOrCallback?: BufferEncoding | WriteCallback, callback?: WriteCallback): boolean => {
+        if (chunk) {
+          const data = Buffer.isBuffer(chunk)
+            ? chunk
+            : Buffer.from(chunk);
+          buffer = Buffer.concat([buffer, data]);
         }
-        return true;
+
+        if (typeof encodingOrCallback === 'function') {
+          return originalWrite(chunk, encodingOrCallback);
+        }
+        return originalWrite(chunk, encodingOrCallback as BufferEncoding, callback);
       };
+      res.write = newWrite;
 
       // レスポンスの最後でフィルタリングを適用
-      res.end = async (...args: any[]): Promise<any> => {
-        try {
-          if (args[0]) {
-            const chunk = Buffer.isBuffer(args[0])
-              ? args[0]
-              : Buffer.from(args[0]);
-            buffer = Buffer.concat([buffer, chunk]);
+      const newEnd: ResponseEnd = (chunkOrCallback?: any, encodingOrCallback?: BufferEncoding | EndCallback, callback?: EndCallback): Response => {
+        void (async () => {
+          try {
+            if (typeof chunkOrCallback !== 'function' && chunkOrCallback) {
+              const data = Buffer.isBuffer(chunkOrCallback)
+                ? chunkOrCallback
+                : Buffer.from(chunkOrCallback);
+              buffer = Buffer.concat([buffer, data]);
+            }
+
+            const contentType = res.getHeader('content-type');
+            if (typeof contentType === 'string' && 
+                contentType.includes('text/html')) {
+              // HTMLコンテンツの場合
+              const content = buffer.toString();
+              const filteredContent = await this.filterHtmlContent(content);
+              buffer = Buffer.from(filteredContent);
+
+              // 更新されたコンテンツを送信
+              res.setHeader('content-length', buffer.length);
+              if (typeof chunkOrCallback === 'function') {
+                originalEnd(buffer, chunkOrCallback);
+              } else if (typeof encodingOrCallback === 'function') {
+                originalEnd(buffer, encodingOrCallback);
+              } else {
+                originalEnd(buffer, encodingOrCallback as BufferEncoding, callback);
+              }
+            } else {
+              // 非HTMLコンテンツはそのまま送信
+              if (typeof chunkOrCallback === 'function') {
+                originalEnd(buffer, chunkOrCallback);
+              } else if (typeof encodingOrCallback === 'function') {
+                originalEnd(buffer, encodingOrCallback);
+              } else {
+                originalEnd(buffer, encodingOrCallback as BufferEncoding, callback);
+              }
+            }
+          } catch (error) {
+            const appError = new AppError(
+              'フィルタリング処理中にエラーが発生しました',
+              'FILTER_ERROR',
+              500,
+              { error, url: req.url }
+            );
+            next(appError);
+            if (typeof chunkOrCallback === 'function') {
+              originalEnd(chunkOrCallback);
+            } else {
+              originalEnd();
+            }
           }
-
-          const contentType = res.getHeader('content-type');
-          if (typeof contentType === 'string' && 
-              contentType.includes('text/html')) {
-            // HTMLコンテンツの場合
-            const content = buffer.toString();
-            const filteredContent = await this.filterHtmlContent(content);
-            buffer = Buffer.from(filteredContent);
-
-            // Content-Lengthを更新
-            res.setHeader('content-length', buffer.length);
-          }
-
-          // オリジナルのend関数を呼び出し
-          res.write = originalEnd;
-          return originalEnd.call(res, buffer);
-        } catch (error) {
-          next(new AppError('フィルタリング処理中にエラーが発生しました', {
-            error,
-            url: req.url,
-          }));
-        }
+        })();
+        return res;
       };
-
-      next();
+      res.end = newEnd;
     };
   }
 
@@ -73,7 +126,7 @@ export class FilterMiddleware {
    */
   private async filterHtmlContent(content: string): Promise<string> {
     // 正規表現ルールを適用
-    let filteredContent = await this.filterService.applyFilters(content);
+    const filteredContent = await this.filterService.applyFilters(content);
 
     // CSSセレクタルールを適用
     const $ = cheerio.load(filteredContent);
