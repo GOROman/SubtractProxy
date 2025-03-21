@@ -15,7 +15,7 @@ export class AppError extends Error {
 
   constructor(
     message: string,
-    code: string = 'APP_ERROR',
+    codeOrMetadata: string | Record<string, unknown> = 'APP_ERROR',
     statusCode = 500,
     metadata?: Record<string, unknown>,
     isOperational = true,
@@ -23,7 +23,13 @@ export class AppError extends Error {
   ) {
     super(message);
     this.name = 'AppError';
-    this.code = code;
+    if (typeof codeOrMetadata === 'string') {
+      this.code = codeOrMetadata;
+      this.metadata = metadata;
+    } else {
+      this.code = 'APP_ERROR';
+      this.metadata = codeOrMetadata;
+    }
     this.statusCode = statusCode;
     this.metadata = metadata;
     this.isOperational = isOperational;

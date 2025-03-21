@@ -7,26 +7,26 @@ import { MatchType } from '../types/filtering';
 type WriteCallback = (error?: Error | null) => void;
 type EndCallback = () => void;
 
-type WriteFunction = {
-  (chunk: any, callback?: WriteCallback): boolean;
-  (chunk: any, encoding: BufferEncoding, callback?: WriteCallback): boolean;
+interface WriteFunction {
+  (chunk: unknown, callback?: WriteCallback): boolean;
+  (chunk: unknown, encoding: BufferEncoding, callback?: WriteCallback): boolean;
 }
 
-type EndFunction = {
+interface EndFunction {
   (cb?: EndCallback): void;
-  (chunk: any, cb?: EndCallback): void;
-  (chunk: any, encoding: BufferEncoding, cb?: EndCallback): void;
+  (chunk: unknown, cb?: EndCallback): void;
+  (chunk: unknown, encoding: BufferEncoding, cb?: EndCallback): void;
 }
 
-type ResponseWrite = {
-  (chunk: any, callback?: WriteCallback): boolean;
-  (chunk: any, encoding: BufferEncoding, callback?: WriteCallback): boolean;
+interface ResponseWrite {
+  (chunk: unknown, callback?: WriteCallback): boolean;
+  (chunk: unknown, encoding: BufferEncoding, callback?: WriteCallback): boolean;
 }
 
-type ResponseEnd = {
+interface ResponseEnd {
   (cb?: EndCallback): Response;
-  (chunk: any, cb?: EndCallback): Response;
-  (chunk: any, encoding: BufferEncoding, cb?: EndCallback): Response;
+  (chunk: unknown, cb?: EndCallback): Response;
+  (chunk: unknown, encoding: BufferEncoding, cb?: EndCallback): Response;
 }
 
 /**
@@ -47,11 +47,19 @@ export class FilterMiddleware {
       let buffer = Buffer.from('');
 
       // レスポンスデータを収集
-      const newWrite: ResponseWrite = (chunk: any, encodingOrCallback?: BufferEncoding | WriteCallback, callback?: WriteCallback): boolean => {
+      const newWrite: ResponseWrite = (chunk: unknown, encodingOrCallback?: BufferEncoding | WriteCallback, callback?: WriteCallback): boolean => {
         if (chunk) {
-          const data = Buffer.isBuffer(chunk)
-            ? chunk
-            : Buffer.from(chunk);
+          let data: Buffer;
+          if (Buffer.isBuffer(chunk)) {
+            data = chunk;
+          } else if (typeof chunk === 'string') {
+            data = Buffer.from(chunk);
+          } else if (chunk instanceof Uint8Array) {
+            data = Buffer.from(chunk);
+          } else {
+            // その他の型の場合は文字列に変換してBufferを作成
+            data = Buffer.from(String(chunk));
+          }
           buffer = Buffer.concat([buffer, data]);
         }
 
@@ -63,13 +71,20 @@ export class FilterMiddleware {
       res.write = newWrite;
 
       // レスポンスの最後でフィルタリングを適用
-      const newEnd: ResponseEnd = (chunkOrCallback?: any, encodingOrCallback?: BufferEncoding | EndCallback, callback?: EndCallback): Response => {
+      const newEnd: ResponseEnd = (chunkOrCallback?: unknown, encodingOrCallback?: BufferEncoding | EndCallback, callback?: EndCallback): Response => {
         void (async () => {
           try {
             if (typeof chunkOrCallback !== 'function' && chunkOrCallback) {
-              const data = Buffer.isBuffer(chunkOrCallback)
-                ? chunkOrCallback
-                : Buffer.from(chunkOrCallback);
+              let data: Buffer;
+              if (Buffer.isBuffer(chunkOrCallback)) {
+                data = chunkOrCallback;
+              } else if (typeof chunkOrCallback === 'string') {
+                data = Buffer.from(chunkOrCallback);
+              } else if (chunkOrCallback instanceof Uint8Array) {
+                data = Buffer.from(chunkOrCallback);
+              } else {
+                data = Buffer.from(String(chunkOrCallback));
+              }
               buffer = Buffer.concat([buffer, data]);
             }
 
@@ -84,18 +99,18 @@ export class FilterMiddleware {
               // 更新されたコンテンツを送信
               res.setHeader('content-length', buffer.length);
               if (typeof chunkOrCallback === 'function') {
-                originalEnd(buffer, chunkOrCallback);
+                originalEnd(buffer, chunkOrCallback as EndCallback);
               } else if (typeof encodingOrCallback === 'function') {
-                originalEnd(buffer, encodingOrCallback);
+                originalEnd(buffer, encodingOrCallback as EndCallback);
               } else {
                 originalEnd(buffer, encodingOrCallback as BufferEncoding, callback);
               }
             } else {
               // 非HTMLコンテンツはそのまま送信
               if (typeof chunkOrCallback === 'function') {
-                originalEnd(buffer, chunkOrCallback);
+                originalEnd(buffer, chunkOrCallback as EndCallback);
               } else if (typeof encodingOrCallback === 'function') {
-                originalEnd(buffer, encodingOrCallback);
+                originalEnd(buffer, encodingOrCallback as EndCallback);
               } else {
                 originalEnd(buffer, encodingOrCallback as BufferEncoding, callback);
               }
@@ -105,11 +120,14 @@ export class FilterMiddleware {
               'フィルタリング処理中にエラーが発生しました',
               'FILTER_ERROR',
               500,
-              { error, url: req.url }
+              { 
+                error: error instanceof Error ? error.message : String(error),
+                url: req.url 
+              }
             );
             next(appError);
             if (typeof chunkOrCallback === 'function') {
-              originalEnd(chunkOrCallback);
+              originalEnd(chunkOrCallback as EndCallback);
             } else {
               originalEnd();
             }
