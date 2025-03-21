@@ -1,6 +1,8 @@
 import { OpenAI } from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources';
 import { ContentFilter, ProxyContext } from '../proxy/types';
 import { Config } from '../config';
+import { processPromptTemplate } from './prompt';
 
 export class OpenRouterFilter implements ContentFilter {
   name = 'OpenRouterFilter';
@@ -32,20 +34,47 @@ export class OpenRouterFilter implements ContentFilter {
     }
 
     try {
+      // コンテキスト情報から追加変数を作成
+      const additionalVars: Record<string, string> = {
+        url: context.url || '',
+        method: context.method || '',
+        contentType: context.contentType || '',
+        userAgent: typeof context.userAgent === 'string' ? context.userAgent : '',
+      };
+
+      // プロンプトテンプレートを処理
+      const promptTemplate = processPromptTemplate(
+        this.config.llm.prompt,
+        content,
+        additionalVars
+      );
+
+      // OpenRouterリクエストの構築
+      const messages: ChatCompletionMessageParam[] = [
+        {
+          role: 'system',
+          content: promptTemplate.system,
+        },
+      ];
+
+      // ユーザープロンプトが設定されている場合は追加
+      if (promptTemplate.user) {
+        messages.push({
+          role: 'user',
+          content: promptTemplate.user,
+        });
+      } else {
+        // デフォルトではコンテンツをそのまま使用
+        messages.push({
+          role: 'user',
+          content,
+        });
+      }
+
       // OpenRouterを使用してコンテンツをフィルタリング
       const response = await this.client.chat.completions.create({
         model: this.config.llm.model,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'あなたはWebコンテンツフィルターです。以下のコンテンツを分析し、不要な情報を削除または要約してください。',
-          },
-          {
-            role: 'user',
-            content,
-          },
-        ],
+        messages,
         temperature: 0.7,
         max_tokens: 1000,
       });
